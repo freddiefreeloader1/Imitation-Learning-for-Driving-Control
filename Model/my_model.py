@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 
 class SimpleNet(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, input_weights=[0.5, 1.5, 1.0, 2.0, 1.5, 0.3]):
+    def __init__(self, input_size, hidden_size, output_size, input_weights=[1.0, 1.0, 1.0, 1.0, 1.0]):
         super(SimpleNet, self).__init__()
         self.input_weights = nn.Parameter(torch.tensor(input_weights), requires_grad=False)
         self.fc1 = nn.Linear(input_size, hidden_size)

@@ -263,7 +263,7 @@ def process_drivelog_csv(file_name_mocap, file_name_control, track_pos=[0, 0], t
     syncedTT['steering_filt'] = second_order_filter(syncedTT.index, syncedTT['steering'], 0.02)
     syncedTT['throttle_filt'] = first_order_filter(syncedTT.index, syncedTT['throttle'], 0.015)
 
-    # wrap the turn angle again
+    # wrap the turn angle again ASK THIS IF THIS IS CORRECT
     syncedTT['theta'] = wrap_to_pi(syncedTT['theta'])
     filtered_data['theta'] = wrap_to_pi(filtered_data['theta'])
 
@@ -405,7 +405,8 @@ def process_files_in_folder(track_data=None):
                 for trajectory in filtered_trajectories_in_curvilinear:
                     trajectory_name = f"trajectory_{trajectory_count}"
                     print(f"Processing: {trajectory_name}")
-                    all_states[trajectory_name] = trajectory.to_dict(orient='list')
+                    if len(trajectory) > 150:
+                        all_states[trajectory_name] = trajectory.to_dict(orient='list')
                     trajectory_count += 1 
                 
                 print(state)
