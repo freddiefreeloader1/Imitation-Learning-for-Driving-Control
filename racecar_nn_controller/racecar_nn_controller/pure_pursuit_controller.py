@@ -3,7 +3,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from lar_msgs.msg import CarControlStamped, CarStateStamped
 from std_msgs.msg import Float32MultiArray
-from geometry_msgs.msg import Pose2D
+from geometry_msgs.msg import Pose2D, Vector3Stamped
 
 from racecar_nn_controller.cartesian_to_curvilinear import pose_to_curvi
 from racecar_nn_controller.transform_to_track_frame import transform_to_track, wrap_to_pi
@@ -53,8 +53,14 @@ def pure_pursuit_controller(x, y, heading_angle, trajectory, deltaS, s):
     target_angle = np.arctan2(dy, dx)
 
     heading_error = target_angle - heading_angle
+
+    if heading_error > np.pi:
+        heading_error -= 2 * np.pi
+    else:
+        if heading_error < -np.pi:
+            heading_error += 2 * np.pi
    
-    heading_error = np.arctan2(np.sin(heading_error), np.cos(heading_error))
+    # heading_error = np.arctan2(np.sin(heading_error), np.cos(heading_error))
     
     wheelbase = 0.098
 
@@ -93,9 +99,11 @@ class PurePursuitControllerNode(Node):
          
         self.publisher_ = self.create_publisher(CarControlStamped, '/sim/car/set/control', 1)
 
+        self.control_ref_publisher = self.create_publisher(Vector3Stamped, "/diag/control_ref", 10)
+
         self.track_flag = False
 
-        self.Kdd = 0.08
+        self.Kdd = 0.30
 
     
     def track_callback(self, msg):
@@ -119,15 +127,25 @@ class PurePursuitControllerNode(Node):
             v = np.sqrt(local_state[3]**2 + local_state[4]**2)
             deltaS = self.Kdd * v
 
-            steering, _ , _ = pure_pursuit_controller(local_state[0], local_state[1], local_state[2], self.track_shape_data['track'], deltaS, s)
+            steering, lookahead_x , lookahead_y = pure_pursuit_controller(local_state[0], local_state[1], local_state[2], self.track_shape_data['track'], deltaS, s)
             
             throttle = np.random.normal(0.19, 0.09)
+
+            # throttle = 0.15
+
+            steering = np.clip(steering / np.deg2rad(15), -1 , 1)
 
             control_msg = CarControlStamped()
             control_msg.header.stamp = self.get_clock().now().to_msg()
             control_msg.throttle = float(throttle)
             control_msg.steering = float(steering)
             self.publisher_.publish(control_msg)
+
+            control_ref_msg = Vector3Stamped()
+            control_ref_msg.header.stamp = control_msg.header.stamp
+            control_ref_msg.vector.x = lookahead_x
+            control_ref_msg.vector.y = lookahead_y
+            self.control_ref_publisher.publish(control_ref_msg)
 
 def main(args=None):
     rclpy.init(args=args)
