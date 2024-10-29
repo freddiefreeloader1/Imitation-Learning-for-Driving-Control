@@ -21,7 +21,7 @@ def plot_track(fig, ax, track_data):
     curvature = np.array(track_data["track"]["curvature"])
     arcLength = np.array(track_data["track"]["arcLength"])
 
-    print(np.array(track_data["track"]["arcLength"])[ind[-1]+1].tolist())
+    # print(np.array(track_data["track"]["arcLength"])[ind[-1]+1].tolist())
 
     filtered_xCoords = xCoords[ind].tolist()
     filtered_yCoords = yCoords[ind].tolist()
@@ -36,7 +36,7 @@ def plot_track(fig, ax, track_data):
     data_track.append(filtered_arcLength)
 
     data_track = np.array(data_track)
-    print(data_track.shape)
+    # print(data_track.shape)
 
     x_track = data_track[0, :].T
     y_track = data_track[1, :].T
@@ -64,8 +64,8 @@ def plot_track(fig, ax, track_data):
     y_coords = y_track
 
     ax.plot(x_coords, y_coords, 'b--', label='Track')
-    ax.plot(x_coords[0], y_coords[0], 'go', label='Start')
-    ax.plot(x_coords[-1], y_coords[-1], 'ro', label='End')
+    # ax.plot(x_coords[0], y_coords[0], 'go', label='Start')
+    # ax.plot(x_coords[-1], y_coords[-1], 'ro', label='End')
 
     ax.plot(left_track_x, left_track_y, 'b-')
     ax.plot(right_track_x, right_track_y, 'b-')
@@ -73,7 +73,6 @@ def plot_track(fig, ax, track_data):
     ax.set_xlabel('X coordinates')
     ax.set_ylabel('Y coordinates')
     ax.legend()
-    ax.set_title('Track with Speeds in Body Frame')
     ax.grid(True)
     #ax.set_aspect('equal', adjustable='box')
     aspect_ratio = 1.0

@@ -21,7 +21,7 @@ def pose_to_curvi(path, pose):
 
     path_pose = path_pose[:, :path_pose.shape[1] // 2]
 
-    pose_curvi = np.zeros_like(pose.to_numpy())
+    pose_curvi = np.zeros_like(pose)
     closest_s, closest_idx = find_closest_point(path, pose.iloc[:, :2].to_numpy())
 
     pose_curvi[:, 0] = closest_s
