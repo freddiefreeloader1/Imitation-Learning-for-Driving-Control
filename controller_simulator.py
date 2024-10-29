@@ -147,6 +147,8 @@ class KinematicBicycleSimulator:
 
             steering_angle, target_x, target_y = pure_pursuit_controller(x, y, heading_angle, self.trajectory['track'], deltaS, s)
 
+            steering = np.clip(steering_angle/np.deg2rad(12), -1, 1)
+
             target_points.append((target_x, target_y))
             
             if throttle_data is not None:
@@ -156,7 +158,7 @@ class KinematicBicycleSimulator:
 
             print(f"Throttle Desired: {throttle_desired}")
 
-            state = self.rk4_step(steering_angle, throttle_desired, dt[i] if dt is not None else 0.005, actuator_dynamics=True)
+            state = self.rk4_step(steering, throttle_desired, dt[i] if dt is not None else 0.005, actuator_dynamics=True)
             path.append(state)
 
         # Convert path and target points to numpy arrays for easier plotting
@@ -212,7 +214,7 @@ if __name__ == "__main__":
 
     simulator.set_desired_velocity(1.0)
 
-    path, target_points = simulator.simulate(track_data=track_data, steps=num_of_step, dt=None, Kdd = 0.02, throttle_data=throttle)
+    path, target_points = simulator.simulate(track_data=track_data, steps=num_of_step, dt=None, Kdd = 0.25, throttle_data=throttle)
 
     animate_simulation(path, fig, ax , target_points, track_shape_data)
 
