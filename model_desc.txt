@@ -1,0 +1,32 @@
+model 3:
+ - without the data augmentation
+
+model 12:
+
+- without ellipsoids
+- towards central line
+- for every 5 point
+- noise : pos 0.5, angle 0.5
+- average lap time 4.60s 
+
+model 13:
+
+- w ellipsoids
+- towards mean traj
+- for every 5 point
+- noise : pos 0.5, angle 0.5
+ - lap time 4.40s 
+
+model 14:
+
+- w ellipsoids
+- towards outer traj
+- for every 1 point
+- noise : pos 1, angle 1
+
+model 15:
+
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.8, angle 2
