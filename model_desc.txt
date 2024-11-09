@@ -15,7 +15,7 @@ model 13:
 - towards mean traj
 - for every 5 point
 - noise : pos 0.5, angle 0.5
- - lap time 4.40s 
+- lap time 4.40s 
 
 model 14:
 
@@ -23,6 +23,7 @@ model 14:
 - towards outer traj
 - for every 1 point
 - noise : pos 1, angle 1
+- lap time 4.70
 
 model 15:
 
@@ -30,3 +31,4 @@ model 15:
 - towards mean traj
 - for every 1 point
 - noise : pos 0.8, angle 2
+- lap time 4.60
