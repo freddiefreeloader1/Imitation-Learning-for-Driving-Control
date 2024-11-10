@@ -8,6 +8,7 @@ model 12:
 - for every 5 point
 - noise : pos 0.5, angle 0.5
 - average lap time 4.60s 
+- wrap to pi error
 
 model 13:
 
@@ -16,6 +17,7 @@ model 13:
 - for every 5 point
 - noise : pos 0.5, angle 0.5
 - lap time 4.40s 
+- wrap to pi error
 
 model 14:
 
@@ -24,6 +26,7 @@ model 14:
 - for every 1 point
 - noise : pos 1, angle 1
 - lap time 4.70
+- wrap to pi error
 
 model 15:
 
@@ -32,3 +35,23 @@ model 15:
 - for every 1 point
 - noise : pos 0.8, angle 2
 - lap time 4.60
+- wrap to pi error
+
+model 16:
+
+- w ellipsoids
+- towards mean traj
+- for every 5 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- lap time 4.65
+
+model 17:
+
+- w/o ellipsoids
+- towards mean traj
+- for every 5 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- lap time 
+

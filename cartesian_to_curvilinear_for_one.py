@@ -50,6 +50,6 @@ def pose_to_curvi(path, pose, bring_to_origin = True):
     e = T_local_global[1, :] @ (pose[:2] - path_pose[:2, int(closest_idx)])
     dtheta =  pose[2] - path_pose[2, int(closest_idx)]
 
-    pose_curvi[1:3] = [e, wrap_to_pi(dtheta)]
+    pose_curvi[1:3] = [e, dtheta]
 
     return pose_curvi
