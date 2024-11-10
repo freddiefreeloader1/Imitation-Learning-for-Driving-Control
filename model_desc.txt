@@ -44,7 +44,8 @@ model 16:
 - for every 5 point
 - noise : pos 0.7, angle 2
 - wrap to pi error fixed
-- lap time 4.65
+- lap time 4.67
+- no vel augmentation
 
 model 17:
 
@@ -53,5 +54,16 @@ model 17:
 - for every 5 point
 - noise : pos 0.7, angle 2
 - wrap to pi error fixed
-- lap time 
+- lap time 4.72
+- no vel augmentation
 
+
+model 18:
+
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
