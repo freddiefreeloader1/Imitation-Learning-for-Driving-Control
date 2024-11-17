@@ -57,6 +57,21 @@ class RacecarNNController(Node):
         self.track_shape_data['track']['xCoords'] = np.array(self.track_shape_data['track']['xCoords']) - self.track_shape_data['track']['x_init']
         self.track_shape_data['track']['yCoords'] = np.array(self.track_shape_data['track']['yCoords']) - self.track_shape_data['track']['y_init']
 
+        self.mean_traj = pd.read_feather('/home/la-user/ros2_ws/src/racecar_nn_controller/racecar_nn_controller/mean_trajectory.feather')
+
+        # Convert the DataFrame to a dictionary
+        mean_traj_dict = self.mean_traj.rename(columns={
+            'x': 'xCoords',
+            'y': 'yCoords',
+            's': 'arcLength'
+        }).to_dict(orient='list') 
+
+        mean_traj_dict = {"track": mean_traj_dict}
+
+        self.mean_traj = mean_traj_dict
+
+
+
         self.last_s = None
         self.lap_start_time = None
         self.lap_time = None
@@ -127,8 +142,10 @@ class RacecarNNController(Node):
             'vy': [],
             'steering': [],
             'throttle': [],
-            "x":[],
-            "y":[]
+            "x": [],
+            "y": [],
+            "heading_angle":[],
+            "omega": []
         }
 
         self.current_pure_pursuit_lap_data = {
@@ -139,8 +156,10 @@ class RacecarNNController(Node):
             'vy': [],
             'steering': [],
             'throttle': [],
-            "x":[],
-            "y":[]
+            "x": [],
+            "y": [],
+            "heading_angle":[],
+            "omega": []
         }
 
         # Timer for running for 2 minutes (120 seconds)
@@ -181,7 +200,7 @@ class RacecarNNController(Node):
 
 
             # CHANGE THE REFERENCE TRACK TO THE MEAN TRACK HERE LATER
-            steering_pure_pursuit, _, _ = pure_pursuit_controller(local_state[0], local_state[1], local_state[2], self.track_shape_data['track'], deltaS, s, offset=False, offset_value=0)
+            steering_pure_pursuit, _, _ = pure_pursuit_controller(local_state[0], local_state[1], local_state[2], self.mean_traj["track"], deltaS, s, offset=False, offset_value=0)
             
             steering_pure_pursuit = np.clip(steering_pure_pursuit / np.deg2rad(17), -1, 1)
 
@@ -216,6 +235,8 @@ class RacecarNNController(Node):
             self.current_lap_data['throttle'].append(throttle)
             self.current_lap_data['x'].append(local_state[0])
             self.current_lap_data['y'].append(local_state[1])
+            self.current_lap_data['heading_angle'].append(local_state[2])
+            self.current_lap_data['omega'].append(local_state[-1])
 
 
 
@@ -228,6 +249,9 @@ class RacecarNNController(Node):
             self.current_pure_pursuit_lap_data['throttle'].append(throttle)
             self.current_pure_pursuit_lap_data['x'].append(local_state[0])
             self.current_pure_pursuit_lap_data['y'].append(local_state[1])
+            self.current_pure_pursuit_lap_data['heading_angle'].append(local_state[2])
+            self.current_pure_pursuit_lap_data['omega'].append(local_state[-1])
+
 
             if self.last_s is not None and self.last_s > 10.5 and s <= 0.05:  # s has crossed zero (lap completed)
                 if self.lap_start_time is not None:
@@ -252,8 +276,10 @@ class RacecarNNController(Node):
                     'vy': [],
                     'steering': [],
                     'throttle': [],
-                    "x":[],
-                    "y":[]
+                    "x": [],
+                    "y": [],
+                    "heading_angle":[],
+                    "omega": []
                 }
 
                 self.current_pure_pursuit_lap_data = {
@@ -264,8 +290,10 @@ class RacecarNNController(Node):
                     'vy': [],
                     'steering': [],
                     'throttle': [],
-                    "x":[],
-                    "y":[]
+                    "x": [],
+                    "y": [],
+                    "heading_angle":[],
+                    "omega": []
                 }
 
             if len(self.lap_times) == 10 and self.ave_flag == True:

@@ -12,6 +12,7 @@ def wrap_to_pi(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
 def compute_target_point(x, y, trajectory, deltaS, s, offset, offset_value):
+    
     distances = np.sqrt((trajectory['xCoords'] - x)**2 + (trajectory['yCoords'] - y)**2)
     direction_vectors = np.array([trajectory['xCoords'] - x, trajectory['yCoords'] - y]).T
 
@@ -108,7 +109,8 @@ class PurePursuitControllerNode(Node):
             'throttle': [],
             "x":[],
             "y":[],
-            "heading_angle":[]
+            "heading_angle":[],
+            "omega":[]
         }
 
         # Timer for running for 2 minutes (120 seconds)
@@ -169,6 +171,8 @@ class PurePursuitControllerNode(Node):
             self.current_lap_data['x'].append(local_state[0])
             self.current_lap_data['y'].append(local_state[1])
             self.current_lap_data['heading_angle'].append(local_state[2])
+            self.current_lap_data['omega'].append(local_state[-1])
+
 
             if self.prev_s is not None and self.prev_s > 10.5 and s < 0.05:
                 self.lap_counter += 1
@@ -190,7 +194,8 @@ class PurePursuitControllerNode(Node):
                     'throttle': [],
                     "x": [],
                     "y": [],
-                    "heading_angle":[]
+                    "heading_angle":[],
+                    "omega": []
                 }
 
             self.prev_s = s
