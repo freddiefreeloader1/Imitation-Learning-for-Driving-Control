@@ -67,3 +67,14 @@ model 18:
 - wrap to pi error fixed
 - lap time 4.61
 - no vel augmentation
+
+
+model 19:
+
+- trained with pure pursuit data
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- no vel augmentation
