@@ -65,12 +65,12 @@ def plot_state(state, track_shape_data, animate=False):
         for i, column in enumerate(columns):
             ax = axes[i // 3, i % 3]
             if column != 'x' and column != 'y' and column != 'curvature' and column != 'total_curvature':
-                ax.plot(state.index, state[column])
+                ax.plot(state.index.to_numpy(), state[column].to_numpy())
                 ax.set_title(column)
                 ax.set_xlabel('time')
                 ax.set_ylabel(column)
             elif column == 'x':
-                ax.plot(state['x'], state['y'])
+                ax.plot(state['x'].to_numpy(), state['y'].to_numpy())
                 plot_track(fig, ax, track_shape_data)
                 ax.set_title('x-y')
                 ax.set_xlabel('x')
@@ -290,43 +290,42 @@ def process_drivelog_csv(file_name_mocap, file_name_control, track_pos=[0, 0], t
         fig, ax = plt.subplots(5, 1, figsize=(6, 10), gridspec_kw={'height_ratios': [1, 1, 1, 1, 1]})
         fig.tight_layout(pad=3.0)
 
-        # Plot raw data in xy-plane (Position)
         ax_pos = ax[0]
         ax_pos.set_title('Raw data + resampled + synced')
-        ax_pos.plot(syncedTT['x'], syncedTT['y'], linewidth=lw, label='synced')
-        ax_pos.plot(syncedTT['x'].iloc[0], syncedTT['y'].iloc[0], 'o', linewidth=lw, label='init')
-        ax_pos.plot(filtered_data['x'], filtered_data['y'], linewidth=lw, label='mocap')
+        ax_pos.plot(syncedTT['x'].to_numpy(), syncedTT['y'].to_numpy(), linewidth=lw, label='synced')
+        ax_pos.plot(syncedTT['x'].iloc[0:1].to_numpy(), syncedTT['y'].iloc[0:1].to_numpy(), 'o', linewidth=lw, label='init')
+        ax_pos.plot(filtered_data['x'].to_numpy(), filtered_data['y'].to_numpy(), linewidth=lw, label='mocap')
         ax_pos.set_xlabel('x (m)')
         ax_pos.set_ylabel('y (m)')
         ax_pos.grid(True)
         ax_pos.legend()
 
         # Plot turn angle (theta)
-        ax[1].plot(syncedTT.index, syncedTT['theta'], linewidth=lw, label='synced')
-        ax[1].plot(filtered_data['time'], filtered_data['theta'], linewidth=lw, label='mocap')
+        ax[1].plot(syncedTT.index.to_numpy(), syncedTT['theta'].to_numpy(), linewidth=lw, label='synced')
+        ax[1].plot(filtered_data['time'].to_numpy(), filtered_data['theta'].to_numpy(), linewidth=lw, label='mocap')
         ax[1].set_ylabel('Turn angle (rad)')
         ax[1].grid(True)
         ax[1].legend()
 
         # Plot velocity in body frame (vx and vy)
-        ax[2].plot(syncedTT.index, syncedTT['vx'], 'r', linewidth=lw, label='body vx')
-        ax[2].plot(syncedTT.index, syncedTT['vy'], '--r', linewidth=lw, label='body vy')
-        ax[2].plot(filtered_data['time'], filtered_data['dx'], 'b', linewidth=lw, label='world vx')
-        ax[2].plot(filtered_data['time'], filtered_data['dy'], '--b', linewidth=lw, label='world vy')
+        ax[2].plot(syncedTT.index.to_numpy(), syncedTT['vx'].to_numpy(), 'r', linewidth=lw, label='body vx')
+        ax[2].plot(syncedTT.index.to_numpy(), syncedTT['vy'].to_numpy(), '--r', linewidth=lw, label='body vy')
+        ax[2].plot(filtered_data['time'].to_numpy()[1:-1], filtered_velocities['dx'].to_numpy(), 'b', linewidth=lw, label='world vx')
+        ax[2].plot(filtered_data['time'].to_numpy()[1:-1], filtered_velocities['dy'].to_numpy(), '--b', linewidth=lw, label='world vy')
         ax[2].set_ylabel('v (body frame)')
         ax[2].grid(True)
         ax[2].legend()
 
         # Plot turn rate (dtheta/dt)
-        ax[3].plot(syncedTT.index, syncedTT['dtheta'], linewidth=lw, label='turn rate')
-        ax[3].plot(filtered_data['time'], filtered_data['omega'], linewidth=lw, label='mocap turn rate')
+        ax[3].plot(syncedTT.index.to_numpy(), syncedTT['omega'].to_numpy(), linewidth=lw, label='turn rate')
+        ax[3].plot(filtered_data['time'].to_numpy()[1:-1], filtered_velocities['omega'].to_numpy(), linewidth=lw, label='mocap turn rate')
         ax[3].set_ylabel('Turn rate (rad/s)')
         ax[3].grid(True)
         ax[3].legend()
 
         # Plot filtered steering input
-        ax[4].plot(syncedTT.index, syncedTT['steering'], linewidth=lw, label='synced')
-        ax[4].plot(syncedTT.index, syncedTT['steering_filt'], linewidth=lw, label='filtered')
+        ax[4].plot(syncedTT.index.to_numpy(), syncedTT['steering'].to_numpy(), linewidth=lw, label='synced')
+        ax[4].plot(syncedTT.index.to_numpy(), syncedTT['steering_filt'].to_numpy(), linewidth=lw, label='filtered')
         ax[4].set_ylabel('Steering angle')
         ax[4].grid(True)
         ax[4].legend()
@@ -392,7 +391,7 @@ def process_files_in_folder(track_data=None):
                     'heading_angle': transformed_df['theta'],
                 }).set_index('time')
 
-                plot_state(state, track_shape_data)
+                plot_state(state, track_shape_data, animate=False)
 
                 # state.to_csv(os.path.join(folder_path_full, "curvilinear_state.csv"), index=True)
 

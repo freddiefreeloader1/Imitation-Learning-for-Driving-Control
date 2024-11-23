@@ -14,7 +14,7 @@ bucket_data_mean_std["s"] = s_values
 
 
 # Load the model data
-model_data = pd.read_feather('model18_dist.feather')
+model_data = pd.read_feather('model18_dist_wrapped.feather')
 model_data = model_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 model_data = model_data.to_dict()
 
@@ -32,6 +32,9 @@ all_s = np.array(all_s)
 all_e = np.array(all_e)
 all_dtheta = np.array(all_dtheta)
 
+plt.plot(all_dtheta)
+plt.show()
+
 
 model_data = {"s": all_s, "e": all_e, "dtheta": all_dtheta}
 
@@ -46,11 +49,43 @@ line, = ax.plot([], [], 'b-', label="Model trajectory line")
 point, = ax.plot([], [], 'bo', label="Model data point")
 
 
+def distance_to_rotated_ellipsoid(point, ellipsoid_center, axes, angle):
+    
+    # Unpack input values
+    x, y = point
+    x0, y0 = ellipsoid_center
+    a, b = axes
+    
+    # Step 1: Translate the point to the ellipsoid-centered coordinates
+    x_translated = x - x0
+    y_translated = y - y0
+    
+    # Step 2: Create the rotation matrix for the given angle
+    cos_theta = np.cos(angle)
+    sin_theta = np.sin(angle)
+    
+    # Apply the inverse of the rotation to the translated point
+    x_rotated = cos_theta * x_translated + sin_theta * y_translated
+    y_rotated = -sin_theta * x_translated + cos_theta * y_translated
+    
+    # Step 3: Normalize the point with respect to the ellipsoid's axes (scaled by a and b)
+    x_scaled = x_rotated / a
+    y_scaled = y_rotated / b
+    
+    # Step 4: Compute the Euclidean distance from the origin (unit circle)
+    distance_to_unit_circle = np.sqrt(x_scaled**2 + y_scaled**2)
+    
+    # Step 5: Adjust the distance based on the unit circle
+    distance_to_surface = np.abs(distance_to_unit_circle - 1)
+    
+    # Step 6: Scale the result back to the ellipsoid's surface
+    distance = distance_to_surface * np.sqrt(a**2 + b**2)
+    
+    return distance
+
 def wrap_to_pi(angles):
-    # Apply the wrapping logic element-wise for the entire array
     wrapped_angles = (angles + np.pi) % (2 * np.pi) - np.pi
     
-    # Ensure the angle is properly within the range [-pi, pi)
     wrapped_angles = np.where(wrapped_angles >= np.pi, wrapped_angles - 2 * np.pi, wrapped_angles)
     wrapped_angles = np.where(wrapped_angles < -np.pi, wrapped_angles + 2 * np.pi, wrapped_angles)
     
@@ -69,7 +104,7 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     std_dtheta = bucket_data_mean_std['std_dtheta'][bucket_index]
 
     cov_matrix = np.array(bucket_data_mean_std['cov_e_dtheta'][bucket_index]).reshape(2, 2)
-    eigvals, eigvecs = np.linalg.eig(cov_matrix)
+    _, eigvecs = np.linalg.eig(cov_matrix)
     angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0]) * 180 / np.pi
 
     # Ellipse parameters (4 standard deviations for 99.99% confidence)
@@ -84,6 +119,9 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     model_e = model_data['e'][model_index]
     model_dtheta = wrap_to_pi(model_data['dtheta'][model_index])
     point.set_data(model_e, model_dtheta)
+
+    distance_to_ellipsoid = distance_to_rotated_ellipsoid([model_e, model_dtheta], [mean_e, mean_dtheta], [width, height], angle= angle)
+    print(distance_to_ellipsoid)
     
     # Set labels and title
     ax.set_title(f"Confidence Ellipsoid and Model Data for Bucket s={bucket_data_mean_std['s'][bucket_index]}")
@@ -117,7 +155,7 @@ def update(frame):
     return line, point  # Return the updated objects
 
 # Create the animation
-ani = FuncAnimation(fig, update, frames=len(model_data['s']), interval=1, repeat=False)
+ani = FuncAnimation(fig, update, frames=len(model_data['s']), interval=0.1, repeat=False)
 
 # Show the plot
 plt.show()
