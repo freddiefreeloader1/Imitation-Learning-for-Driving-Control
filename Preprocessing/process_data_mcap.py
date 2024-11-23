@@ -3,13 +3,16 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.transform import Rotation as R
 from scipy.ndimage import uniform_filter1d
+import sys
+
+sys.path.append("Utils")
 
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from plot_track import plot_track
 
 from scipy.signal import butter, filtfilt
-from plot_track import plot_track
 from filter_data import split_data
 import yaml
 import os 
@@ -364,7 +367,7 @@ def process_files_in_folder(track_data=None):
                     track_data = pd.read_csv(track_file)
                     
                 # Process the data
-                transformed_df = process_drivelog_csv(mocap_file, control_file, track_data=track_data, plot=False)
+                transformed_df = process_drivelog_csv(mocap_file, control_file, track_data=track_data, plot=True)
 
                 # save the transformed data 
                 # transformed_df.to_csv(os.path.join(folder_path_full, "cleaned_synced_data.csv"), index=True)

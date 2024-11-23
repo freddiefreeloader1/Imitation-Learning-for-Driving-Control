@@ -5,16 +5,15 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Ellipse
 
 # Load the bucket mean and std data (assuming the bucket_data_mean_std is already loaded as a dictionary)
-bucket_data_mean_std = pd.read_feather('bucket_data_mean_std.feather')
+bucket_data_mean_std = pd.read_feather('Obtained Model Data/bucket_data_mean_std.feather')
 bucket_data_mean_std = bucket_data_mean_std.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 bucket_data_mean_std = bucket_data_mean_std.to_dict()
 
 s_values = list(bucket_data_mean_std['s'].values())
 bucket_data_mean_std["s"] = s_values
 
-
 # Load the model data
-model_data = pd.read_feather('model18_dist_wrapped.feather')
+model_data = pd.read_feather('Obtained Model Data/model18_dist_wrapped.feather')
 model_data = model_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 model_data = model_data.to_dict()
 
