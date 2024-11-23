@@ -368,7 +368,7 @@ def process_files_in_folder(track_data=None):
                 transformed_df = process_drivelog_csv(mocap_file, control_file, track_data=track_data, plot=False)
 
                 # save the transformed data 
-                transformed_df.to_csv(os.path.join(folder_path_full, "cleaned_synced_data.csv"), index=True)
+                # transformed_df.to_csv(os.path.join(folder_path_full, "cleaned_synced_data.csv"), index=True)
 
                 with open("la_track.yaml", "r") as file:
                     track_shape_data = yaml.safe_load(file)
@@ -392,9 +392,9 @@ def process_files_in_folder(track_data=None):
                     'heading_angle': transformed_df['theta'],
                 }).set_index('time')
 
-                # plot_state(state, track_shape_data)
+                plot_state(state, track_shape_data)
 
-                state.to_csv(os.path.join(folder_path_full, "curvilinear_state.csv"), index=True)
+                # state.to_csv(os.path.join(folder_path_full, "curvilinear_state.csv"), index=True)
 
                 # Apply filtering/splitting logic
                 filtered_trajectories_in_curvilinear = split_data(pd.concat([state.iloc[:, :6], state.iloc[:, -3:]], axis=1), state.iloc[:, 6:8], threshold=0.2, min_decreasing_steps=5)

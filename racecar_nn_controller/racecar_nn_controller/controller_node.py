@@ -70,8 +70,6 @@ class RacecarNNController(Node):
 
         self.mean_traj = mean_traj_dict
 
-
-
         self.last_s = None
         self.lap_start_time = None
         self.lap_time = None
@@ -180,7 +178,7 @@ class RacecarNNController(Node):
 
         if self.track_flag:
             
-            state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle),  np.clip(msg.turn_rate,-1,1)], dtype = np.float32)
+            state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle), np.clip(msg.turn_rate,-1,1)], dtype = np.float32)
 
             local_state = transform_to_track(state_values, self.track_data)
                     
