@@ -99,7 +99,6 @@ model 21:
 - for every 1 point
 - noise : pos 0.7, angle 2
 - wrap to pi error fixed
-- lap time 4.61
 - no vel augmentation
 
 model 22:
@@ -116,6 +115,21 @@ model 22:
 
 model 23:
 
+- with adding noise to omega
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+
+model 24:
+
+- with clipping the omega values to -4 and 4 on all trajectories filtered
 - with adding noise to omega
 - with omega
 - with filtered trajectories
