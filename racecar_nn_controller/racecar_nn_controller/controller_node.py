@@ -5,8 +5,8 @@ from lar_msgs.msg import CarControlStamped, CarStateStamped
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Pose2D
 
-from racecar_nn_controller.cartesian_to_curvilinear import pose_to_curvi
-from racecar_nn_controller.transform_to_track_frame import transform_to_track, wrap_to_pi
+from racecar_nn_controller.cartesian_to_curvilinear import pose_to_curvi, wrap_to_pi
+from racecar_nn_controller.transform_to_track_frame import transform_to_track
 from racecar_nn_controller.pure_pursuit_controller import pure_pursuit_controller
 
 from ament_index_python.packages import get_package_share_directory
@@ -70,6 +70,8 @@ class RacecarNNController(Node):
 
         self.mean_traj = mean_traj_dict
 
+
+
         self.last_s = None
         self.lap_start_time = None
         self.lap_time = None
@@ -92,11 +94,18 @@ class RacecarNNController(Node):
 
         # Load the trained model
         package_share_directory = get_package_share_directory('racecar_nn_controller')
-        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_18_64.pth')
-        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_18.json')
+        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_23_64.pth')
+        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_23.json')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
-        self.model = SimpleNet(input_size=5, hidden_size=64, output_size=2)
+
+        self.include_omega = True
+
+        if self.include_omega:
+            self.model = SimpleNet(input_size=6, hidden_size=64, output_size=2, input_weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        else:
+            self.model = SimpleNet(input_size=5, hidden_size=64, output_size=2)
+
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.to(self.device)
         self.model.eval()
@@ -178,19 +187,31 @@ class RacecarNNController(Node):
 
         if self.track_flag:
             
-            state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle), np.clip(msg.turn_rate,-1,1)], dtype = np.float32)
+            state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle),  np.clip(msg.turn_rate, -1, 1)], dtype = np.float32)
+
+            print(msg.turn_rate)
 
             local_state = transform_to_track(state_values, self.track_data)
                     
             curvilinear_pose = pose_to_curvi(self.track_shape_data, local_state, bring_to_origin=False)
-                
-            state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]]], axis=None)
+
+            if self.include_omega:
+                state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]], local_state[-1]], axis=None)
+                noise_coeff = [1, 0.7, 0.5, 0.2, 0.1, 0.1]
+            else:
+                state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]]], axis=None)
+                noise_coeff = [1, 0.7, 0.5, 0.2, 0.1]
 
             s = state[0]
             e = state[1]
             dtheta = state[2]
             vx = state[3]
             vy = state[4]
+            omega = local_state[-1]
+
+            state[2] = wrap_to_pi(state[2])
+
+            # state = state + np.random.normal(0, 0.01, len(state)) * noise_coeff
 
             ##################################################################### calculate pure pursuit command as well but dont give it as command
             v = np.sqrt(local_state[3]**2 + local_state[4]**2)
@@ -208,8 +229,6 @@ class RacecarNNController(Node):
 
             state_transformed = torch.Tensor(state_transformed).to(self.device)
 
-
-            
             with torch.no_grad():
                 action = self.model(state_transformed.unsqueeze(0)).cpu().numpy().flatten()
                 action = action * self.scale_action + self.mean_action
@@ -310,8 +329,8 @@ class RacecarNNController(Node):
             if self.log_data:
                 df = pd.DataFrame.from_dict(self.log_data)
                 df_pp = pd.DataFrame.from_dict(self.pure_pursuit_log_data)
-                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/model18_dist.feather'
-                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/model18_dist_pure_pursuit.feather'
+                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model22_dist_wrapped.feather'
+                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model22_dist_pure_pursuit_wrapped.feather'
 
                 df.to_feather(log_path)
                 df_pp.to_feather(log_path_pp)
