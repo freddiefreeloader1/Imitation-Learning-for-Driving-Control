@@ -3,6 +3,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Ellipse
+import sys
+import yaml
+from matplotlib.widgets import Button
+
+sys.path.append('Utils')
+
+from plot_track import plot_track
 
 # Load the bucket mean and std data (assuming the bucket_data_mean_std is already loaded as a dictionary)
 bucket_data_mean_std = pd.read_feather('Obtained Model Data/bucket_data_mean_std.feather')
@@ -13,40 +20,56 @@ s_values = list(bucket_data_mean_std['s'].values())
 bucket_data_mean_std["s"] = s_values
 
 # Load the model data
-model_data = pd.read_feather('Obtained Model Data/model18_dist_wrapped.feather')
+model_data = pd.read_feather('Obtained Model Data/model18_dist.feather')
 model_data = model_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 model_data = model_data.to_dict()
 
 all_s = []
 all_e = []
 all_dtheta = []
+all_x = []  # Assuming you have x position data in model_data
+all_y = []  # Assuming you have y position data in model_data
 
 for trajectory in model_data.values():
     all_s.extend(trajectory['s'])
     all_e.extend(trajectory['e'])
     all_dtheta.extend(trajectory['dtheta'])
+    all_x.extend(trajectory['x'])  # Add x position data
+    all_y.extend(trajectory['y'])  # Add y position data
 
 # Convert lists into arrays for easier handling
 all_s = np.array(all_s)
 all_e = np.array(all_e)
 all_dtheta = np.array(all_dtheta)
-
-plt.plot(all_dtheta)
-plt.show()
+all_x = np.array(all_x)
+all_y = np.array(all_y)
 
 
 model_data = {"s": all_s, "e": all_e, "dtheta": all_dtheta}
 
-# Set up figure and axis
-fig, ax = plt.subplots(figsize=(8, 6))
+fig, (ax, ax_side) = plt.subplots(1, 2, figsize=(16, 6))
 
 # Initialize model_index globally
 model_index = 0  # Set to the first model index initially
 
-# Initialize the line object (empty at the start)
+# Initialize the line objects for both plots (empty at the start)
 line, = ax.plot([], [], 'b-', label="Model trajectory line")
 point, = ax.plot([], [], 'bo', label="Model data point")
 
+line_side, = ax_side.plot([], [], 'g-', label="Model x/y trajectory")
+point_side, = ax_side.plot([], [], 'go', label="Model x/y position")
+
+with open("la_track.yaml", "r") as file:
+    track_shape_data = yaml.safe_load(file)
+
+# Set up the side plot
+ax_side.set_xlim(np.min(all_x) - 0.1, np.max(all_x) + 0.1)  # Adjust x limits
+ax_side.set_ylim(np.min(all_y) - 0.1, np.max(all_y) + 0.1)  # Adjust y limits
+ax_side.set_xlabel("X Position")
+ax_side.set_ylabel("Y Position")
+ax_side.set_title("X-Y Trajectory of the Model")
+
+plot_track(fig, ax_side, track_shape_data)
 
 def distance_to_rotated_ellipsoid(point, ellipsoid_center, axes, angle):
     
@@ -120,7 +143,6 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     point.set_data(model_e, model_dtheta)
 
     distance_to_ellipsoid = distance_to_rotated_ellipsoid([model_e, model_dtheta], [mean_e, mean_dtheta], [width, height], angle= angle)
-    print(distance_to_ellipsoid)
     
     # Set labels and title
     ax.set_title(f"Confidence Ellipsoid and Model Data for Bucket s={bucket_data_mean_std['s'][bucket_index]}")
@@ -139,7 +161,12 @@ def find_closest_bucket_s(model_s):
     closest_index = np.argmin(diffs)
     return closest_index
 
-# Function to update the plot for the animation
+def play_animation(event):
+    ani.event_source.start()
+
+def stop_animation(event):
+    ani.event_source.stop()
+
 def update(frame):
     model_index = frame
     model_s = model_data['s'][model_index]
@@ -151,10 +178,23 @@ def update(frame):
     # Update the trajectory line with the new model point
     line.set_data(model_data['e'][:model_index+1], wrap_to_pi(model_data['dtheta'][:model_index+1]))
     
-    return line, point  # Return the updated objects
+    # Update the side plot with the x and y positions
+    line_side.set_data(all_x[:model_index+1], all_y[:model_index+1])
+    point_side.set_data(all_x[model_index], all_y[model_index])
+    
+    return line, point, line_side, point_side  # Return the updated objects
+
 
 # Create the animation
 ani = FuncAnimation(fig, update, frames=len(model_data['s']), interval=0.1, repeat=False)
+
+ax_button = plt.axes([0.85, 0.01, 0.1, 0.075])  # Button position
+button_start = Button(ax_button, 'Play', color='lightgoldenrodyellow', hovercolor='orange')
+button_start.on_clicked(play_animation)
+
+ax_button = plt.axes([0.75, 0.01, 0.1, 0.075])  # Button position
+button_stop = Button(ax_button, 'Stop', color='lightgoldenrodyellow', hovercolor='orange')
+button_stop.on_clicked(stop_animation)
 
 # Show the plot
 plt.show()
