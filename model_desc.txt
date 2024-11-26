@@ -156,3 +156,50 @@ model 25:
 - wrap to pi error fixed
 - lap time 4.61
 - no vel augmentation
+
+
+model 26:
+
+- weight decay parameter increased to 1e-3 from 1e-6
+- with adding noise to omega
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+
+
+model 27:
+
+- added regularization to steering with weight 1.0
+- weight decay parameter increased to 1e-3 from 1e-6
+- with adding noise to omega
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+
+model 28:
+
+- without omega
+- added regularization to steering with weight 1.0
+- weight decay parameter increased to 1e-3 from 1e-6
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation

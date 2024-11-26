@@ -94,15 +94,16 @@ class RacecarNNController(Node):
 
         # Load the trained model
         package_share_directory = get_package_share_directory('racecar_nn_controller')
-        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_23_64.pth')
-        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_23.json')
+        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_29_64.pth')
+        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_29.json')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
 
         self.include_omega = True
+        self.wrap_omega = False
 
         if self.include_omega:
-            self.model = SimpleNet(input_size=6, hidden_size=64, output_size=2, input_weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+            self.model = SimpleNet(input_size=6, hidden_size=64, output_size=2, input_weights=[5.0, 5.0, 5.0, 1.0, 1.0, 1.0])
         else:
             self.model = SimpleNet(input_size=5, hidden_size=64, output_size=2)
 
@@ -187,16 +188,21 @@ class RacecarNNController(Node):
 
         if self.track_flag:
             
-            state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle),  np.clip(msg.turn_rate, -1, 1)], dtype = np.float32)
-
-            print(msg.turn_rate)
+            state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle),  msg.turn_rate], dtype = np.float32)
 
             local_state = transform_to_track(state_values, self.track_data)
                     
             curvilinear_pose = pose_to_curvi(self.track_shape_data, local_state, bring_to_origin=False)
 
+
+            #################################### WHY DOES WRAPPING IT MAKE IT SMOOTHER?
+            # High turn rates triggers high steering angles to compensate in the expert data
+            # By wrapping it we are never getting high turn rates
             if self.include_omega:
-                state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]], local_state[-1]], axis=None)
+                if self.wrap_omega:
+                    state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]], wrap_to_pi(local_state[-1])], axis=None)
+                else:
+                    state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]],local_state[-1]], axis=None)
                 noise_coeff = [1, 0.7, 0.5, 0.2, 0.1, 0.1]
             else:
                 state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]]], axis=None)
@@ -211,7 +217,7 @@ class RacecarNNController(Node):
 
             state[2] = wrap_to_pi(state[2])
 
-            # state = state + np.random.normal(0, 0.01, len(state)) * noise_coeff
+            state = state + np.random.normal(0, 0.01, len(state)) * noise_coeff
 
             ##################################################################### calculate pure pursuit command as well but dont give it as command
             v = np.sqrt(local_state[3]**2 + local_state[4]**2)
@@ -234,7 +240,8 @@ class RacecarNNController(Node):
                 action = action * self.scale_action + self.mean_action
 
             throttle = float(action[0])
-            steering = float(action[1])
+
+            steering = np.clip(float(action[1]), -1, 1)
 
             control_msg = CarControlStamped()
             control_msg.header.stamp = self.get_clock().now().to_msg()
