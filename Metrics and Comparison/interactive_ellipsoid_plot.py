@@ -20,7 +20,7 @@ s_values = list(bucket_data_mean_std['s'].values())
 bucket_data_mean_std["s"] = s_values
 
 # Load the model data
-model_data = pd.read_feather('Obtained Model Data/model18_dist_wrapped.feather')
+model_data = pd.read_feather('Obtained Model Data/model29_dist_wrapped.feather')
 model_data = model_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 model_data = model_data.to_dict()
 
@@ -89,10 +89,10 @@ plot_track(fig, axs[1, 0], track_shape_data)
 # Set up the ellipses plots
 for ax_row in axs[0, :]:
     ax_row.set_xlim(-2, 2)  # Set x-axis limit between -2 and 2 for ellipses
-    ax_row.set_ylim(-4, 4)  # Set y-axis limit between -4 and 4 for ellipses
+    ax_row.set_ylim(-6, 6)  # Set y-axis limit between -4 and 4 for ellipses
 
 axs[1,1].set_xlim(-2,2)
-axs[1,1].set_ylim(-4, 4)
+axs[1,1].set_ylim(-8, 8)
 
 
 def distance_to_rotated_ellipsoid(point, ellipsoid_center, axes, angle):
@@ -204,8 +204,6 @@ def find_closest_bucket_s(model_s):
     closest_index = np.argmin(diffs)
     return closest_index
 
-def play_animation(event):
-    ani.event_source.start()
 
 def stop_animation(event):
     ani.event_source.stop()
@@ -213,28 +211,39 @@ def stop_animation(event):
 ax_slider = plt.axes([0.1, 0.01, 0.6, 0.075])  # Position of the slider
 slider = Slider(ax_slider, 'Frame', 0, len(all_s)-1, valinit=0, valstep=1)
 
+
+# Declare glob_frame globally
+glob_frame = 0
+
 # Function to update the frame based on slider position
 def update_slider(val):
-    frame = int(slider.val)
-    bucket_index = find_closest_bucket_s(model_data['s'][frame])
-    plot_ellipsoid_and_model(bucket_index, frame)
-
-    # Update the plot with the new data based on the slider position
+    global glob_frame
+    glob_frame = int(slider.val)  # Update the global frame based on slider position
+    bucket_index = find_closest_bucket_s(model_data['s'][glob_frame])
+    plot_ellipsoid_and_model(bucket_index, glob_frame)
     return line, point, line1, point1, line2, point2, line_side, point_side
+
+# Function to start the animation from the selected glob_frame
+def play_animation(event):
+    global glob_frame
+    # Set the frame sequence to start from glob_frame
+    ani.event_source.frame_seq = range(glob_frame, len(all_s))  # Start animation from glob_frame
+    ani.event_source.start()
 
 # Update the plots based on slider changes
 slider.on_changed(update_slider)
 
 # Now, connect the slider to the animation update
 def update(frame):
-    # Directly use frame from the animation
-    bucket_index = find_closest_bucket_s(model_data['s'][frame])
-    plot_ellipsoid_and_model(bucket_index, frame)
-
-    return line, point, line1, point1, line2, point2, line_side, point_side  # Return the updated objects
+    global glob_frame
+    glob_frame = frame
+    bucket_index = find_closest_bucket_s(model_data['s'][glob_frame])
+    plot_ellipsoid_and_model(bucket_index, glob_frame)
+    return line, point, line1, point1, line2, point2, line_side, point_side
 
 # Create the animation
 ani = FuncAnimation(fig, update, frames=len(all_s), interval=0.1, repeat=False)
+
 
 # Create Play button
 ax_button_play = plt.axes([0.85, 0.01, 0.1, 0.075])  # Button position

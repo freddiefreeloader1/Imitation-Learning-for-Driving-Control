@@ -10,8 +10,6 @@ from racecar_nn_controller.transform_to_track_frame import transform_to_track, w
 
 from ament_index_python.packages import get_package_share_directory
 
-import ipdb
-
 import os
 
 import torch
@@ -50,12 +48,6 @@ class TransformerModel(nn.Module):
         # Prepare input for transformer
         state_embed = state_embed.permute(1, 0, 2)  # (seq_length, batch_size, d_model)
         action_embed = action_embed.permute(1, 0, 2)  # (seq_length, batch_size, d_model)
-        # ipdb.set_trace()
-        # Forward pass through transformer
-
-        print(state_embed)
-
-        print(action_embed)
 
         transformer_output = self.transformer(state_embed, action_embed)  # (seq_length, batch_size, d_model)
         # Output the predicted 5th action (output of the last sequence step)
@@ -65,9 +57,15 @@ class TransformerModel(nn.Module):
 class RacecarNNControllerTransformer(Node):
     def __init__(self):
         super().__init__('racecar_nn_controller')
-        track_path = "/root/ros2_ws/install/lar_utils/share/lar_utils/config/track/sampled/la_track.yaml"
+
+        track_path = "/home/la-user/ros2_ws/src/racecar_nn_controller/racecar_nn_controller/la_track.yaml"
         with open(track_path, "r") as file:
             self.track_shape_data = yaml.safe_load(file)
+
+        self.track_shape_data['track']['xCoords'] = np.array(self.track_shape_data['track']['xCoords']) - self.track_shape_data['track']['x_init']
+        self.track_shape_data['track']['yCoords'] = np.array(self.track_shape_data['track']['yCoords']) - self.track_shape_data['track']['y_init']
+
+
 
         self.track_data = []
         self.subscription_track = self.create_subscription(
@@ -92,9 +90,10 @@ class RacecarNNControllerTransformer(Node):
 
         # Define the transformer model
         print(torch.version.__version__)
-        self.model = TransformerModel(state_dim= 5, action_dim=2, 
+        self.model = TransformerModel(state_dim= 6, action_dim=2, 
                          d_model=64, nhead=4, num_encoder_layers=1, 
-                         num_decoder_layers=0, dim_feedforward=128)
+                         num_decoder_layers=1, dim_feedforward=128)
+
         
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.to(self.device)
@@ -118,8 +117,8 @@ class RacecarNNControllerTransformer(Node):
         self.action_scaler.scale_ = self.scale_action
         
 
-        # Buffer to store sequences of 5 states and 4 actions
-        self.state_buffer = deque(maxlen=5)
+        # Buffer to store sequences of 4 states and 4 actions
+        self.state_buffer = deque(maxlen=4)
         self.action_buffer = deque(maxlen=4)
 
         # print("Transformer model used for neural network control running on", self.device, ":\n")
@@ -130,25 +129,32 @@ class RacecarNNControllerTransformer(Node):
         self.destroy_subscription(self.subscription_track)
 
     def listener_callback(self, msg):
-        state_values = np.array([[msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, msg.turn_angle, np.clip(msg.turn_rate, -1, 1)]], dtype=np.float32)
-        local_state = transform_to_track(state_values[0], self.track_data)
-        curvilinear_pose = pose_to_curvi(self.track_shape_data, local_state)
-        state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]]], axis=None)
+
+        state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle),  msg.turn_rate], dtype = np.float32)
+
+        local_state = transform_to_track(state_values, self.track_data)
+
+        curvilinear_pose = pose_to_curvi(self.track_shape_data, local_state, bring_to_origin=False)
+
+        curvilinear_pose[2] = wrap_to_pi(curvilinear_pose[2])
+
+        state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4], local_state[-1]]], axis=None)
 
         # state_transformed = self.scaler.transform([state])
+
         self.state_buffer.append(state)
+
         if len(self.action_buffer) < 4:
             self.update_action_buffer(0.0, 0.0)
         
 
-        if len(self.state_buffer) == 5 and len(self.action_buffer) == 4:
+        if len(self.state_buffer) == 4 and len(self.action_buffer) == 4:
             states = torch.tensor(self.state_buffer, dtype=torch.float32).unsqueeze(0).to(self.device)
             actions = torch.tensor(self.action_buffer, dtype=torch.float32).unsqueeze(0).to(self.device)
 
             with torch.no_grad():
-                predicted_action = self.model(states, actions).cpu().clamp(min=-1.0, max=1.0).numpy().flatten()
+                predicted_action = self.model(states, actions).cpu().numpy().flatten()
                 self.update_action_buffer(predicted_action[0], predicted_action[1])
-                # predicted_action = predicted_action * self.scale_action + self.mean_action
 
             control_msg = CarControlStamped()
             control_msg.header.stamp = self.get_clock().now().to_msg()

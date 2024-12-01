@@ -50,6 +50,11 @@ class RacecarNNController(Node):
     def __init__(self):
         super().__init__('racecar_nn_controller')
 
+
+        self.declare_parameter('noise_frequency', 1) 
+        self.noise_frequency = self.get_parameter('noise_frequency').value
+        self.message_counter = 0
+
         track_path = "/home/la-user/ros2_ws/src/racecar_nn_controller/racecar_nn_controller/la_track.yaml"
         with open(track_path, "r") as file:
             self.track_shape_data = yaml.safe_load(file)
@@ -94,12 +99,12 @@ class RacecarNNController(Node):
 
         # Load the trained model
         package_share_directory = get_package_share_directory('racecar_nn_controller')
-        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_29_64.pth')
-        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_29.json')
+        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_17_64.pth')
+        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_17.json')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
 
-        self.include_omega = True
+        self.include_omega = False
         self.wrap_omega = False
 
         if self.include_omega:
@@ -187,37 +192,53 @@ class RacecarNNController(Node):
     def listener_callback(self, msg):
 
         if self.track_flag:
+
+            self.message_counter += 1
             
             state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle),  msg.turn_rate], dtype = np.float32)
 
             local_state = transform_to_track(state_values, self.track_data)
-                    
-            curvilinear_pose = pose_to_curvi(self.track_shape_data, local_state, bring_to_origin=False)
 
+            noise_weight_coeff = 0.30
+
+            noised_local_state = local_state.copy()
+
+            if self.message_counter % self.noise_frequency == 0:
+                noised_local_state[0] = noised_local_state[0] + np.random.normal(0, 0.5) * noise_weight_coeff
+                noised_local_state[1] = noised_local_state[1] + np.random.normal(0, 0.5) * noise_weight_coeff
+                noised_local_state[2] = noised_local_state[2] + np.random.normal(0, 2) * noise_weight_coeff
+                noised_local_state[-1] = noised_local_state[-1] + np.random.normal(0, 1.5) * noise_weight_coeff
+
+            curvilinear_pose_noised = pose_to_curvi(self.track_shape_data, noised_local_state, bring_to_origin=False)
+            curvilinear_pose_real = pose_to_curvi(self.track_shape_data, local_state, bring_to_origin=False)
 
             #################################### WHY DOES WRAPPING IT MAKE IT SMOOTHER?
             # High turn rates triggers high steering angles to compensate in the expert data
             # By wrapping it we are never getting high turn rates
             if self.include_omega:
                 if self.wrap_omega:
-                    state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]], wrap_to_pi(local_state[-1])], axis=None)
+                    state = np.concatenate([curvilinear_pose_noised, [local_state[3], local_state[4]], wrap_to_pi(local_state[-1])], axis=None)
+                    state[0] = curvilinear_pose_real[0]
                 else:
-                    state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]],local_state[-1]], axis=None)
-                noise_coeff = [1, 0.7, 0.5, 0.2, 0.1, 0.1]
+                    state = np.concatenate([curvilinear_pose_noised, [local_state[3], local_state[4]],local_state[-1]], axis=None)
+                    state[0] = curvilinear_pose_real[0]
+
+                noise_coeff = [1.5, 1, 2, 0, 0, 1]
             else:
-                state = np.concatenate([curvilinear_pose, [local_state[3], local_state[4]]], axis=None)
+                state = np.concatenate([curvilinear_pose_noised, [local_state[3], local_state[4]]], axis=None)
+                state[0] = curvilinear_pose_real[0]
                 noise_coeff = [1, 0.7, 0.5, 0.2, 0.1]
 
-            s = state[0]
-            e = state[1]
-            dtheta = state[2]
+            s = curvilinear_pose_real[0]
+            e = curvilinear_pose_real[1]
+            dtheta = curvilinear_pose_real[2]
             vx = state[3]
             vy = state[4]
             omega = local_state[-1]
 
             state[2] = wrap_to_pi(state[2])
 
-            state = state + np.random.normal(0, 0.01, len(state)) * noise_coeff
+            # state = state + np.random.normal(0, 0.2, len(state)) * noise_coeff
 
             ##################################################################### calculate pure pursuit command as well but dont give it as command
             v = np.sqrt(local_state[3]**2 + local_state[4]**2)
@@ -260,7 +281,7 @@ class RacecarNNController(Node):
             self.current_lap_data['x'].append(local_state[0])
             self.current_lap_data['y'].append(local_state[1])
             self.current_lap_data['heading_angle'].append(local_state[2])
-            self.current_lap_data['omega'].append(local_state[-1])
+            self.current_lap_data['omega'].append(omega)
 
 
 
@@ -274,7 +295,7 @@ class RacecarNNController(Node):
             self.current_pure_pursuit_lap_data['x'].append(local_state[0])
             self.current_pure_pursuit_lap_data['y'].append(local_state[1])
             self.current_pure_pursuit_lap_data['heading_angle'].append(local_state[2])
-            self.current_pure_pursuit_lap_data['omega'].append(local_state[-1])
+            self.current_pure_pursuit_lap_data['omega'].append(omega)
 
 
             if self.last_s is not None and self.last_s > 10.5 and s <= 0.05:  # s has crossed zero (lap completed)
@@ -336,8 +357,8 @@ class RacecarNNController(Node):
             if self.log_data:
                 df = pd.DataFrame.from_dict(self.log_data)
                 df_pp = pd.DataFrame.from_dict(self.pure_pursuit_log_data)
-                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model22_dist_wrapped.feather'
-                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model22_dist_pure_pursuit_wrapped.feather'
+                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model18_dist_wrapped.feather'
+                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model18_dist_pure_pursuit_wrapped.feather'
 
                 df.to_feather(log_path)
                 df_pp.to_feather(log_path_pp)
