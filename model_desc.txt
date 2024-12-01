@@ -142,7 +142,6 @@ model 24:
 - no vel augmentation
 
 
-
 model 25:
 
 - omega weight on the model decreased to 0.1
