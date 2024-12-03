@@ -191,7 +191,7 @@ model 27:
 
 model 28:
 
-- without omega
+- with omega
 - added regularization to steering with weight 1.0
 - weight decay parameter increased to 1e-3 from 1e-6
 - with filtered trajectories
@@ -208,7 +208,7 @@ model 28:
 model 29:
 
 - added l1 regularization with weight 1e-6
-- without omega
+- with omega
 - added regularization to steering with weight 1.0
 - with filtered trajectories
 - w ellipsoids
