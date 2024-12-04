@@ -6,6 +6,7 @@ from matplotlib.patches import Ellipse
 import sys
 import yaml
 from matplotlib.widgets import Button, Slider
+from matplotlib.lines import Line2D
 
 sys.path.append('Utils')
 
@@ -16,11 +17,70 @@ bucket_data_mean_std = pd.read_feather('Obtained Model Data/bucket_data_mean_std
 bucket_data_mean_std = bucket_data_mean_std.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 bucket_data_mean_std = bucket_data_mean_std.to_dict()
 
+
+expert_data = pd.read_feather('Obtained Model Data/all_trajectories_filtered.feather')
+expert_data = expert_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
+expert_data = expert_data.to_dict()
+
+
+all_s_expert = []
+all_e_expert  = []
+all_dtheta_expert  = []
+all_omega_expert  = []
+all_x_expert  = []  # Assuming you have x position data in model_data
+all_y_expert  = []  # Assuming you have y position data in model_data
+
+for trajectory in expert_data.values():
+    all_s_expert .extend(trajectory['s'])
+    all_e_expert .extend(trajectory['e'])
+    all_dtheta_expert .extend(trajectory['dtheta'])
+    all_x_expert .extend(trajectory['x'])  # Add x position data
+    all_y_expert .extend(trajectory['y'])  # Add y position data
+    all_omega_expert .extend(trajectory["omega"])
+
+# Convert lists into arrays for easier handling
+all_s_expert  = np.array(all_s_expert)
+all_e_expert  = np.array(all_e_expert)
+all_dtheta_expert  = np.array(all_dtheta_expert)
+all_x_expert  = np.array(all_x_expert)
+all_y_expert  = np.array(all_y_expert)
+all_omega_expert  = np.array(all_omega_expert)
+
+
+added_data = pd.read_feather('Obtained Model Data/added_data_low_noise.feather')
+added_data = added_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
+added_data = added_data.to_dict()
+
+
+all_s_added = []
+all_e_added  = []
+all_dtheta_added  = []
+all_omega_added  = []
+all_x_added  = []  # Assuming you have x position data in model_data
+all_y_added  = []  # Assuming you have y position data in model_data
+
+for trajectory in added_data.values():
+    all_s_added .extend(trajectory['s'])
+    all_e_added .extend(trajectory['e'])
+    all_dtheta_added .extend(trajectory['dtheta'])
+    all_x_added .extend(trajectory['x'])  # Add x position data
+    all_y_added .extend(trajectory['y'])  # Add y position data
+    all_omega_added .extend(trajectory["omega"])
+
+# Convert lists into arrays for easier handling
+all_s_added  = np.array(all_s_added )
+all_e_added  = np.array(all_e_added )
+all_dtheta_added  = np.array(all_dtheta_added )
+all_x_added  = np.array(all_x_added )
+all_y_added  = np.array(all_y_added )
+all_omega_added  = np.array(all_omega_added)
+
+
 s_values = list(bucket_data_mean_std['s'].values())
 bucket_data_mean_std["s"] = s_values
 
 # Load the model data
-model_data = pd.read_feather('Obtained Model Data/model18_dist_wrapped.feather')
+model_data = pd.read_feather('Obtained Model Data/model30_dist_wrapped.feather')
 model_data = model_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 model_data = model_data.to_dict()
 
@@ -119,6 +179,20 @@ def wrap_to_pi(angles):
     wrapped_angles = np.where(wrapped_angles < -np.pi, wrapped_angles + 2 * np.pi, wrapped_angles)
     return wrapped_angles
 
+
+added_point_plot_handles_added = {
+    'edtheta_added': None,
+    'eomega_added': None,
+    'dthetaomega_added': None
+}
+
+added_point_plot_handles_expert = {
+    'edtheta_expert': None,
+    'eomega_expert': None,
+    'dthetaomega_expert': None
+}
+
+
 # Function to plot the confidence ellipsoids and model data point for the closest s
 def plot_ellipsoid_and_model(bucket_index, model_index):
     # Remove previous plot elements (ellipses and points)
@@ -129,6 +203,20 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     for patch in axs[1,1].patches:
         patch.remove()
 
+
+    if added_point_plot_handles_added['edtheta_added']:
+        added_point_plot_handles_added['edtheta_added'].remove()
+    if added_point_plot_handles_added['eomega_added']:
+        added_point_plot_handles_added['eomega_added'].remove()
+    if added_point_plot_handles_added['dthetaomega_added']:
+        added_point_plot_handles_added['dthetaomega_added'].remove()
+
+    if added_point_plot_handles_expert['edtheta_expert']:
+        added_point_plot_handles_expert['edtheta_expert'].remove()
+    if added_point_plot_handles_expert['eomega_expert']:
+        added_point_plot_handles_expert['eomega_expert'].remove()
+    if added_point_plot_handles_expert['dthetaomega_expert']:
+        added_point_plot_handles_expert['dthetaomega_expert'].remove()
 
     # Extract relevant values for the selected bucket (for the closest s)
     mean_e = bucket_data_mean_std['mean_e'][bucket_index]
@@ -151,9 +239,9 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     
     # Plot the e-dtheta ellipse
     ellipse_edtheta = Ellipse(xy=(mean_e, mean_dtheta), width=width_edtheta, height=height_edtheta, 
-                              angle=angle_edtheta, edgecolor='r', facecolor='none', linewidth=2)
+                              angle=angle_edtheta, edgecolor='r', facecolor='none', linewidth=3)
     axs[0, 0].add_patch(ellipse_edtheta)
-    
+
     # Plot the model data point on top of the ellipsoid
     model_e = model_data['e'][model_index]
     model_dtheta = wrap_to_pi(model_data['dtheta'][model_index])
@@ -167,7 +255,7 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     
     # Plot the e-omega ellipse
     ellipse_eomega = Ellipse(xy=(mean_e, mean_omega), width=width_eomega, height=height_eomega, 
-                             angle=angle_eomega, edgecolor='g', facecolor='none', linewidth=2)
+                             angle=angle_eomega, edgecolor='g', facecolor='none', linewidth=3)
     axs[0, 1].add_patch(ellipse_eomega)
 
     model_omega = model_data['omega'][model_index]
@@ -182,13 +270,50 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     # Plot the dtheta-omega ellipse
     ellipse_dthetaomega = Ellipse(xy=(mean_dtheta, mean_omega), width=width_dthetaomega, 
                                   height=height_dthetaomega, angle=angle_dthetaomega, 
-                                  edgecolor='b', facecolor='none', linewidth=2)
+                                  edgecolor='b', facecolor='none', linewidth=3)
     axs[1, 1].add_patch(ellipse_dthetaomega)
 
     model_dtheta = wrap_to_pi(model_data['dtheta'][model_index])
     model_omega = model_data['omega'][model_index]
     point2.set_data(model_dtheta, model_omega)  # Update point for dtheta-omega plot
 
+    bucket_start = bucket_data_mean_std['s'][bucket_index]
+    try:
+        bucket_end =  bucket_data_mean_std['s'][bucket_index+1]
+    except:
+        bucket_start = bucket_data_mean_std['s'][0]
+        bucket_end =  bucket_data_mean_std['s'][1]
+
+    indices_in_bucket_added = (all_s_added >= bucket_start) & (all_s_added < bucket_end)
+    indices_in_bucket_expert = (all_s_expert >= bucket_start) & (all_s_expert < bucket_end)
+    
+    # Get the corresponding e, dtheta, omega values
+    added_e = np.array(all_e_added)[indices_in_bucket_added]
+    added_dtheta = np.array(all_dtheta_added)[indices_in_bucket_added]
+    added_omega = np.array(all_omega_added)[indices_in_bucket_added]
+
+    expert_e = np.array(all_e_expert)[indices_in_bucket_expert]
+    expert_dtheta = np.array(all_dtheta_expert)[indices_in_bucket_expert]
+    expert_omega = np.array(all_omega_expert)[indices_in_bucket_expert]
+
+    added_point_plot_handles_added['edtheta_added'] = axs[0, 0].plot(added_e, added_dtheta, 'yX', alpha=0.1, label = "Added Points")[0]  
+    added_point_plot_handles_added['eomega_added'] = axs[0, 1].plot(added_e, added_omega, 'yX', alpha=0.1)[0]  
+    added_point_plot_handles_added['dthetaomega_added'] = axs[1, 1].plot(added_dtheta, added_omega, 'yX', alpha=0.1)[0] 
+
+
+    added_point_plot_handles_expert['edtheta_expert'] = axs[0, 0].plot(expert_e, expert_dtheta, 'mX', alpha=0.02, label= "Expert Points")[0] 
+    added_point_plot_handles_expert['eomega_expert'] = axs[0, 1].plot(expert_e, expert_omega, 'mX', alpha=0.02)[0] 
+    added_point_plot_handles_expert['dthetaomega_expert'] = axs[1, 1].plot(expert_dtheta, expert_omega, 'mX', alpha=0.02)[0]  
+
+    legend_handles = [
+        Line2D([0], [0], marker='X', color='y', markerfacecolor='y', markersize=8, alpha=1.0, label='Added Points'),
+        Line2D([0], [0], marker='X', color='m', markerfacecolor='m', markersize=8, alpha=1.0, label='Expert Points')
+    ]
+
+    # Add the legend with the custom handles
+    axs[0, 0].legend(handles=legend_handles, labels=["Added Points", "Expert Points"])
+
+    
     # Update the trajectory line with the new model point
     # line.set_data(model_data['e'][:model_index+1], wrap_to_pi(model_data['dtheta'][:model_index+1]))
     

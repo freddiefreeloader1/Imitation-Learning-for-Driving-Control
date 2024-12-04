@@ -1,0 +1,24 @@
+digraph {
+	A [label=Methods]
+	B [label=BC]
+	C [label="BC with Data Augmentation"]
+	D [label=Ellipsoids]
+	E [label="No Ellipsoids"]
+	F [label="Training Noise"]
+	G [label="Inference Noise"]
+	H [label="Path to Stabilize"]
+	I [label=Hyperparameters]
+	J [label="Mean Trajectory"]
+	K [label="Each Trajectory"]
+	A -> B
+	A -> C
+	C -> D
+	C -> E
+	D -> I
+	E -> I
+	I -> F
+	I -> G
+	I -> H
+	H -> J
+	H -> K
+}

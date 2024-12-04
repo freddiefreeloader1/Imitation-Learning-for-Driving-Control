@@ -218,3 +218,19 @@ model 29:
 - wrap to pi error fixed
 - lap time 4.61
 - no vel augmentation
+
+
+model 30:
+
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-6
+- with omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
