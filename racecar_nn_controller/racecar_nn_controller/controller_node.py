@@ -4,6 +4,7 @@ from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from lar_msgs.msg import CarControlStamped, CarStateStamped
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Pose2D
+from sensor_msgs.msg import Joy
 
 from racecar_nn_controller.cartesian_to_curvilinear import pose_to_curvi, wrap_to_pi
 from racecar_nn_controller.transform_to_track_frame import transform_to_track
@@ -53,6 +54,10 @@ class RacecarNNController(Node):
 
         self.declare_parameter('noise_frequency', 1) 
         self.noise_frequency = self.get_parameter('noise_frequency').value
+
+        self.declare_parameter('mode', "sim") 
+        self.mode = self.get_parameter('mode').value
+
         self.message_counter = 0
 
         track_path = "/home/la-user/ros2_ws/src/racecar_nn_controller/racecar_nn_controller/la_track.yaml"
@@ -83,29 +88,60 @@ class RacecarNNController(Node):
         self.lap_times = []
 
         self.track_data = []
-        self.subscription_track = self.create_subscription(
+
+
+        self.subscription_joy = self.create_subscription(
+            Joy,
+            '/joy',
+            self.joy_callback,
+            1)
+
+        self.joy_command = 0
+
+    
+        
+        
+
+        print("The mode is: ", self.mode)
+        
+        if self.mode == "sim":
+            self.subscription_track = self.create_subscription(
             Pose2D,
             '/sim/track/pose2d',
             self.track_callback,
             1)
-    
-        self.subscription = self.create_subscription(
+            self.subscription = self.create_subscription(
             CarStateStamped,
             '/sim/car/state',
             self.listener_callback,
             1)
-         
-        self.publisher_ = self.create_publisher(CarControlStamped, '/sim/car/set/control', 1)
+
+            self.publisher_ = self.create_publisher(CarControlStamped, '/sim/car/set/control', 1)
+        else:
+            self.subscription_track = self.create_subscription(
+            Pose2D,
+            '/mocap/track/pose2d',
+            self.track_callback,
+            1)
+
+            self.subscription = self.create_subscription(
+            CarStateStamped,
+            '/car/state',
+            self.listener_callback,
+            1)
+
+            self.publisher_ = self.create_publisher(CarControlStamped, '/car/set/control', 1)
 
         # Load the trained model
         package_share_directory = get_package_share_directory('racecar_nn_controller')
-        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_17_64.pth')
-        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_17.json')
+        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_30_64.pth')
+        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_30.json')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
 
-        self.include_omega = False
+        self.include_omega = True
         self.wrap_omega = False
+        self.add_noise = True
 
         if self.include_omega:
             self.model = SimpleNet(input_size=6, hidden_size=64, output_size=2, input_weights=[5.0, 5.0, 5.0, 1.0, 1.0, 1.0])
@@ -184,6 +220,9 @@ class RacecarNNController(Node):
         self.Kdd = 0.30
 
     
+    def joy_callback(self, msg):
+        self.joy_command = msg.axes[1]
+
     def track_callback(self, msg):
         self.track_data = [msg.x, msg.y, msg.theta]
         self.track_flag = True
@@ -199,11 +238,11 @@ class RacecarNNController(Node):
 
             local_state = transform_to_track(state_values, self.track_data)
 
-            noise_weight_coeff = 0.30
+            noise_weight_coeff = 0.25
 
             noised_local_state = local_state.copy()
 
-            if self.message_counter % self.noise_frequency == 0:
+            if self.message_counter % self.noise_frequency == 0 and self.add_noise:
                 noised_local_state[0] = noised_local_state[0] + np.random.normal(0, 0.5) * noise_weight_coeff
                 noised_local_state[1] = noised_local_state[1] + np.random.normal(0, 0.5) * noise_weight_coeff
                 noised_local_state[2] = noised_local_state[2] + np.random.normal(0, 2) * noise_weight_coeff
@@ -260,7 +299,11 @@ class RacecarNNController(Node):
                 action = self.model(state_transformed.unsqueeze(0)).cpu().numpy().flatten()
                 action = action * self.scale_action + self.mean_action
 
-            throttle = float(action[0])
+            throttle = float(action[0]) 
+
+            throttle = min(throttle, self.joy_command)
+
+            throttle = np.clip(throttle, -0.6, 0.6)
 
             steering = np.clip(float(action[1]), -1, 1)
 
@@ -357,8 +400,8 @@ class RacecarNNController(Node):
             if self.log_data:
                 df = pd.DataFrame.from_dict(self.log_data)
                 df_pp = pd.DataFrame.from_dict(self.pure_pursuit_log_data)
-                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model18_dist_wrapped.feather'
-                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model18_dist_pure_pursuit_wrapped.feather'
+                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model30_dist_wrapped.feather'
+                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model30_dist_pure_pursuit_wrapped.feather'
 
                 df.to_feather(log_path)
                 df_pp.to_feather(log_path_pp)
