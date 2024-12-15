@@ -248,3 +248,65 @@ model 31:
 - wrap to pi error fixed
 - lap time 4.61
 - no vel augmentation
+
+
+model 32:
+
+- with previous actions (no penalty)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-6
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+model 33:
+
+- with previous actions (no penalty)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+model 34:
+
+- with previous actions (with penalty weight 1)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+
+model 34:
+
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
