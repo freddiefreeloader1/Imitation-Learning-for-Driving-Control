@@ -155,6 +155,22 @@ axs[1,1].set_xlim(-2,2)
 axs[1,1].set_ylim(-8, 8)
 
 
+def is_outside_ellipsoid_n_dim(noisy_vals, means, cov_matrix):
+
+    noisy_vals = np.array(noisy_vals)
+    means = np.array(means)
+    
+    diff = noisy_vals - means
+    
+    inv_cov = np.linalg.inv(cov_matrix)
+    
+    dist_n_dim = diff.T @ inv_cov @ diff
+
+    print(dist_n_dim)
+    
+    return dist_n_dim > 16
+
+
 def distance_to_rotated_ellipsoid(point, ellipsoid_center, axes, angle):
     # Same as your original function for calculating distance to the rotated ellipsoid
     x, y = point
@@ -245,6 +261,12 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     # Plot the model data point on top of the ellipsoid
     model_e = model_data['e'][model_index]
     model_dtheta = wrap_to_pi(model_data['dtheta'][model_index])
+    point.set_data(model_e, model_dtheta)
+
+    if is_outside_ellipsoid_n_dim([model_e, model_dtheta], [mean_e, mean_dtheta], cov_matrix_edtheta):
+        point.set_marker('X') 
+    else:
+        point.set_marker('o')  
     point.set_data(model_e, model_dtheta)
     
     # Now add the e-omega ellipsoid

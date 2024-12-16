@@ -98,10 +98,6 @@ class RacecarNNController(Node):
 
         self.joy_command = 0
 
-    
-        
-        
-
         print("The mode is: ", self.mode)
         
         if self.mode == "sim":
@@ -134,18 +130,23 @@ class RacecarNNController(Node):
 
         # Load the trained model
         package_share_directory = get_package_share_directory('racecar_nn_controller')
-        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_30_64.pth')
-        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_30.json')
+        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_38_64.pth')
+        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_38.json')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
 
         self.include_omega = True
+        self.include_prev_action = True
         self.wrap_omega = False
         self.add_noise = True
 
-        if self.include_omega:
+        if self.include_omega and self.include_prev_action:
+            self.model = SimpleNet(input_size=8, hidden_size=64, output_size=2, input_weights=[5.0, 5.0, 5.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        elif not self.include_omega and self.include_prev_action:
+            self.model = SimpleNet(input_size=7, hidden_size=64, output_size=2, input_weights=[5.0, 5.0, 5.0, 1.0, 1.0, 1.0, 1.0])
+        elif self.include_omega and not self.include_prev_action:
             self.model = SimpleNet(input_size=6, hidden_size=64, output_size=2, input_weights=[5.0, 5.0, 5.0, 1.0, 1.0, 1.0])
-        else:
+        elif not self.include_omega and not self.include_prev_action:
             self.model = SimpleNet(input_size=5, hidden_size=64, output_size=2)
 
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
@@ -160,6 +161,12 @@ class RacecarNNController(Node):
 
         self.mean_action = scaling_params['mean'][1]
         self.scale_action = scaling_params['std'][1]
+
+        self.scaler_action = StandardScaler()
+        self.scaler_action.mean_ = self.mean_action 
+        self.scaler_action.scale_ = self.scale_action
+
+        self.prev_action = np.array([0.0, 0.0])
 
         self.scaler = StandardScaler()
         self.scaler.mean_ = mean_state
@@ -211,7 +218,7 @@ class RacecarNNController(Node):
             "omega": []
         }
 
-        # Timer for running for 2 minutes (120 seconds)
+        # Timer for checking the current lap number 
         self.timer = self.create_timer(1.0, self.check_lap_number)
 
         # Set a shutdown flag
@@ -238,7 +245,7 @@ class RacecarNNController(Node):
 
             local_state = transform_to_track(state_values, self.track_data)
 
-            noise_weight_coeff = 0.25
+            noise_weight_coeff = 0.01
 
             noised_local_state = local_state.copy()
 
@@ -262,11 +269,17 @@ class RacecarNNController(Node):
                     state = np.concatenate([curvilinear_pose_noised, [local_state[3], local_state[4]],local_state[-1]], axis=None)
                     state[0] = curvilinear_pose_real[0]
 
-                noise_coeff = [1.5, 1, 2, 0, 0, 1]
+                if self.include_prev_action:
+                    noise_coeff = [0.5, 0.7, 0.5, 0.2, 0.1, 0.1, 0.005, 0.04]
+                else:
+                    noise_coeff = [1, 0.7, 0.5, 0.2, 0.1, 0.1]
             else:
                 state = np.concatenate([curvilinear_pose_noised, [local_state[3], local_state[4]]], axis=None)
                 state[0] = curvilinear_pose_real[0]
-                noise_coeff = [1, 0.7, 0.5, 0.2, 0.1]
+                if self.include_prev_action:
+                    noise_coeff = [1, 0.7, 0.5, 0.2, 0.1, 0.005, 0.04]
+                else:
+                    noise_coeff = [1, 0.7, 0.5, 0.2, 0.1]
 
             s = curvilinear_pose_real[0]
             e = curvilinear_pose_real[1]
@@ -277,7 +290,11 @@ class RacecarNNController(Node):
 
             state[2] = wrap_to_pi(state[2])
 
-            # state = state + np.random.normal(0, 0.2, len(state)) * noise_coeff
+            if self.include_prev_action:
+                state = np.concatenate((state, self.prev_action))
+
+            if self.add_noise:
+                state = state + np.random.normal(0, 0.2, len(state)) * noise_coeff
 
             ##################################################################### calculate pure pursuit command as well but dont give it as command
             v = np.sqrt(local_state[3]**2 + local_state[4]**2)
@@ -301,11 +318,15 @@ class RacecarNNController(Node):
 
             throttle = float(action[0]) 
 
-            throttle = min(throttle, self.joy_command)
+            # throttle = max(throttle, 0.12)
+
+            # throttle = min(throttle, self.joy_command)
 
             throttle = np.clip(throttle, -0.6, 0.6)
 
             steering = np.clip(float(action[1]), -1, 1)
+
+            self.prev_action = np.array([throttle, steering])
 
             control_msg = CarControlStamped()
             control_msg.header.stamp = self.get_clock().now().to_msg()
@@ -396,12 +417,12 @@ class RacecarNNController(Node):
             self.get_logger().info("Lap number reached, saving data and shutting down.")
             self.shutdown_flag = True
 
-            # Save data to a Feather file at the end of the 2 minutes
+            # Save data to a Feather file if max laps is achieved
             if self.log_data:
                 df = pd.DataFrame.from_dict(self.log_data)
                 df_pp = pd.DataFrame.from_dict(self.pure_pursuit_log_data)
-                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model30_dist_wrapped.feather'
-                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model30_dist_pure_pursuit_wrapped.feather'
+                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model39_dist_wrapped.feather'
+                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model39_dist_pure_pursuit_wrapped.feather'
 
                 df.to_feather(log_path)
                 df_pp.to_feather(log_path_pp)

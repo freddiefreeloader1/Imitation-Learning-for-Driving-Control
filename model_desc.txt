@@ -296,12 +296,77 @@ model 34:
 - no vel augmentation
 
 
-model 34:
+model 35:
 
 - with previous actions (with penalty weight 3)
 - with noise values 0.25 pos, 1 heading angle, 0.75 omega
 - added l1 regularization with weight 1e-4
 - without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+
+model 36:
+
+- with Kdd = 0.6 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+model 37:
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+model 38:
+
+- with Kdd = 0.6 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+- lap time 4.61
+- no vel augmentation
+
+model 39:
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
 - added regularization to steering with weight 1.0
 - with filtered trajectories
 - w ellipsoids

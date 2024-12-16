@@ -2,6 +2,8 @@ import rclpy
 from rclpy.node import Node
 from lar_msgs.msg import CarControlStamped, CarStateStamped
 from geometry_msgs.msg import Pose2D, Vector3Stamped
+from sensor_msgs.msg import Joy
+
 from racecar_nn_controller.cartesian_to_curvilinear import pose_to_curvi, curvi_to_pose_offset
 from racecar_nn_controller.transform_to_track_frame import transform_to_track, wrap_to_pi
 import numpy as np
@@ -60,6 +62,9 @@ class PurePursuitControllerNode(Node):
         super().__init__('racecar_nn_controller')
 
         track_path = "/home/la-user/ros2_ws/src/racecar_nn_controller/racecar_nn_controller/la_track.yaml"
+
+        self.declare_parameter('mode', "sim") 
+        self.mode = self.get_parameter('mode').value
         
         with open(track_path, "r") as file:
             self.track_shape_data = yaml.safe_load(file)
@@ -74,13 +79,44 @@ class PurePursuitControllerNode(Node):
             self.track_callback,
             1)
 
-        self.subscription = self.create_subscription(
+        self.subscription_joy = self.create_subscription(
+            Joy,
+            '/joy',
+            self.joy_callback,
+            1)
+
+        self.joy_command = 0
+
+        print("The mode is: ", self.mode)
+        
+        if self.mode == "sim":
+            self.subscription_track = self.create_subscription(
+            Pose2D,
+            '/sim/track/pose2d',
+            self.track_callback,
+            1)
+            self.subscription = self.create_subscription(
             CarStateStamped,
             '/sim/car/state',
             self.listener_callback,
             1)
-         
-        self.publisher_ = self.create_publisher(CarControlStamped, '/sim/car/set/control', 1)
+
+            self.publisher_ = self.create_publisher(CarControlStamped, '/sim/car/set/control', 1)
+        else:
+            self.subscription_track = self.create_subscription(
+            Pose2D,
+            '/mocap/track/pose2d',
+            self.track_callback,
+            1)
+
+            self.subscription = self.create_subscription(
+            CarStateStamped,
+            '/car/state',
+            self.listener_callback,
+            1)
+
+            self.publisher_ = self.create_publisher(CarControlStamped, '/car/set/control', 1)
+
         self.control_ref_publisher = self.create_publisher(Vector3Stamped, "/diag/control_ref", 10)
 
         self.track_flag = False
@@ -205,10 +241,12 @@ class PurePursuitControllerNode(Node):
             self.get_logger().info("Lap number reached, saving data and shutting down.")
             self.shutdown_flag = True
 
-            # Save data to a Feather file at the end of the 2 minutes
             if self.log_data:
                 df = pd.DataFrame.from_dict(self.log_data)
-                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/pure_pursuit_artificial_df.feather'
+                if self.mode == "sim":
+                    log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/pure_pursuit_artificial_df.feather'
+                else:
+                    log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/pure_pursuit_artificial_df_real.feather'
                 df.to_feather(log_path)
                 self.get_logger().info(f"Data saved to: {log_path}")
             
