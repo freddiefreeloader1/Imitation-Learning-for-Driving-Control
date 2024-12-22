@@ -367,7 +367,6 @@ model 39:
 - with noise values 0.25 pos, 1 heading angle, 0.75 omega
 - added l1 regularization with weight 1e-4
 - with omega
-- added regularization to steering with weight 1.0
 - with filtered trajectories
 - w ellipsoids
 - towards each trajectory
