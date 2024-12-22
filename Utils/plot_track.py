@@ -82,7 +82,7 @@ def plot_track(fig, ax, track_data):
     ax.set_ylim([min(y_coords) - 1.5, max(y_coords) + 1.5])
 
 
-    return 
+    return left_track_x, left_track_y, right_track_x, right_track_y
 
 if __name__ == "__main__":
     with open("la_track.yaml", 'r') as stream:

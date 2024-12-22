@@ -130,15 +130,15 @@ class RacecarNNController(Node):
 
         # Load the trained model
         package_share_directory = get_package_share_directory('racecar_nn_controller')
-        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_38_64.pth')
-        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_38.json')
+        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_40_64.pth')
+        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_40.json')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
 
-        self.include_omega = True
-        self.include_prev_action = True
+        self.include_omega = False
+        self.include_prev_action = False
         self.wrap_omega = False
-        self.add_noise = True
+        self.add_noise = False
 
         if self.include_omega and self.include_prev_action:
             self.model = SimpleNet(input_size=8, hidden_size=64, output_size=2, input_weights=[5.0, 5.0, 5.0, 1.0, 1.0, 1.0, 1.0, 1.0])
@@ -322,7 +322,7 @@ class RacecarNNController(Node):
 
             # throttle = min(throttle, self.joy_command)
 
-            throttle = np.clip(throttle, -0.6, 0.6)
+            throttle = np.clip(throttle, -0.6, 0.25)
 
             steering = np.clip(float(action[1]), -1, 1)
 
@@ -421,8 +421,8 @@ class RacecarNNController(Node):
             if self.log_data:
                 df = pd.DataFrame.from_dict(self.log_data)
                 df_pp = pd.DataFrame.from_dict(self.pure_pursuit_log_data)
-                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model39_dist_wrapped.feather'
-                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model39_dist_pure_pursuit_wrapped.feather'
+                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model37_dist_wrapped.feather'
+                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model37_dist_pure_pursuit_wrapped.feather'
 
                 df.to_feather(log_path)
                 df_pp.to_feather(log_path_pp)

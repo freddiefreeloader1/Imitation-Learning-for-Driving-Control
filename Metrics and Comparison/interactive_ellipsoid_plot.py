@@ -11,10 +11,9 @@ from matplotlib.lines import Line2D
 sys.path.append('Utils')
 
 from plot_track import plot_track
+from check_collision import check_collision
 
-
-plot_steering_omega = True
-plot_throttle_s = True
+check_coll = True
 
 # Load the bucket mean and std data (assuming the bucket_data_mean_std is already loaded as a dictionary)
 bucket_data_mean_std = pd.read_feather('Obtained Model Data/bucket_data_mean_std.feather')
@@ -91,7 +90,7 @@ s_values = list(bucket_data_mean_std['s'].values())
 bucket_data_mean_std["s"] = s_values
 
 # Load the model data
-model_data = pd.read_feather('Obtained Model Data/model30_dist_wrapped.feather')
+model_data = pd.read_feather('Obtained Model Data/model18_dist_wrapped.feather')
 model_data = model_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 model_data = model_data.to_dict()
 
@@ -166,7 +165,15 @@ axs[1, 0].set_xlabel("X Position")
 axs[1, 0].set_ylabel("Y Position")
 axs[1, 0].set_title("X-Y Trajectory of the Model")
 
-plot_track(fig, axs[1, 0], track_shape_data)
+
+for traj in expert_data:
+    if traj == "trajectory_1":
+        axs[1, 0].plot(expert_data[traj]['x'], expert_data[traj]['y'], linewidth = 0.5, alpha = 0.1, color="r", label="Expert Trajectories")
+    else:
+        axs[1, 0].plot(expert_data[traj]['x'], expert_data[traj]['y'], linewidth = 0.5, alpha = 0.1, color="r")
+
+
+left_track_x, left_track_y, right_track_x, right_track_y = plot_track(fig, axs[1, 0], track_shape_data)
 
 # Set up the ellipses plots
 for ax_row in axs[0, :]:
@@ -175,6 +182,13 @@ for ax_row in axs[0, :]:
 
 axs[1,1].set_xlim(-15,15)
 axs[1,1].set_ylim(-1, 1)
+
+
+if check_coll:
+    inner_collisions, outer_collisions = check_collision(all_x, all_y, left_track_x, left_track_y, right_track_x, right_track_y)
+
+    print(f'Number of collisions with inner boundary: {inner_collisions}')
+    print(f'Number of collisions with outer boundary: {outer_collisions}')
 
 
 def is_outside_ellipsoid_n_dim(noisy_vals, means, cov_matrix):
@@ -355,14 +369,14 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
 
 
     # Plot added points (omega-steering and s-throttle)
-    added_point_plot_handles_added['edtheta_added'] = axs[0, 0].plot(added_e, added_dtheta, 'yX', alpha=0.1)[0]
-    added_point_plot_handles_added['omegasteering_added'] = axs[0, 1].plot(added_e, added_steering, 'yX', alpha=0.1)[0]  
-    added_point_plot_handles_added['sthrottle_added'] = axs[1, 1].plot(added_s, added_throttle, 'yX', alpha=0.1)[0]
+    added_point_plot_handles_added['edtheta_added'] = axs[0, 0].plot(added_e, added_dtheta, 'yX', alpha=0.05)[0]
+    added_point_plot_handles_added['omegasteering_added'] = axs[0, 1].plot(added_e, added_steering, 'yX', alpha=0.05)[0]  
+    # added_point_plot_handles_added['sthrottle_added'] = axs[1, 1].plot(added_s, added_throttle, 'yX', alpha=0.1)[0]
 
     # Plot expert points (omega-steering and s-throttle)
-    added_point_plot_handles_expert['edtheta_expert'] = axs[0, 0].plot(expert_e, expert_dtheta, 'mX', alpha=0.02)[0]
-    added_point_plot_handles_expert['omegasteering_expert'] = axs[0, 1].plot(expert_e, expert_steering, 'mX', alpha=0.02)[0] 
-    added_point_plot_handles_expert['sthrottle_expert'] = axs[1, 1].plot(expert_s, expert_throttle, 'mX', alpha=0.02)[0] 
+    added_point_plot_handles_expert['edtheta_expert'] = axs[0, 0].plot(expert_e, expert_dtheta, 'mX', alpha=0.01)[0]
+    added_point_plot_handles_expert['omegasteering_expert'] = axs[0, 1].plot(expert_e, expert_steering, 'mX', alpha=0.01)[0] 
+    # added_point_plot_handles_expert['sthrottle_expert'] = axs[1, 1].plot(expert_s, expert_throttle, 'mX', alpha=0.02)[0] 
 
     legend_handles = [
         Line2D([0], [0], marker='X', color='y', markerfacecolor='y', markersize=8, alpha=1.0, label='Added Points'),
@@ -372,11 +386,13 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     # Add the legend with the custom handles
     axs[0, 1].legend(handles=legend_handles, labels=["Added Points", "Expert Points"])
 
-    axs[1,1].set_xlim(bucket_end-2,bucket_start+2)
+    axs[1,1].set_xlim(bucket_end-0.5,bucket_start+0.5)
     axs[1,1].set_ylim(-1, 1)
 
     # Update the side plot with the x and y positions
     line_side.set_data(all_x[:model_index + 1], all_y[:model_index + 1])
+    line_side.set_alpha(0.8)  # Set transparency (0.0 is fully transparent, 1.0 is fully opaque)
+    line_side.set_linewidth(0.3)
     point_side.set_data(all_x[model_index], all_y[model_index])
 
     return line, point, line1, point1, line2, point2, line_side, point_side  # Return the updated objects

@@ -73,11 +73,6 @@ class PurePursuitControllerNode(Node):
         self.track_shape_data['track']['yCoords'] = np.array(self.track_shape_data['track']['yCoords']) - self.track_shape_data['track']['y_init']
 
         self.track_data = []
-        self.subscription_track = self.create_subscription(
-            Pose2D,
-            '/sim/track/pose2d',
-            self.track_callback,
-            1)
 
         self.subscription_joy = self.create_subscription(
             Joy,
@@ -154,9 +149,12 @@ class PurePursuitControllerNode(Node):
 
         # Set a shutdown flag
         self.shutdown_flag = False
+        
+    def joy_callback(self, msg):
+        self.joy_command = msg.axes[1]
 
     def offset_change(self):
-        self.offset_value = np.random.uniform(-0.35, 0)
+        self.offset_value = np.random.uniform(-0.30, 0)
 
     def track_callback(self, msg):
         self.track_data = [msg.x, msg.y, msg.theta]
