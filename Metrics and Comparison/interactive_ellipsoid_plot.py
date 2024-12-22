@@ -12,6 +12,10 @@ sys.path.append('Utils')
 
 from plot_track import plot_track
 
+
+plot_steering_omega = True
+plot_throttle_s = True
+
 # Load the bucket mean and std data (assuming the bucket_data_mean_std is already loaded as a dictionary)
 bucket_data_mean_std = pd.read_feather('Obtained Model Data/bucket_data_mean_std.feather')
 bucket_data_mean_std = bucket_data_mean_std.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
@@ -24,57 +28,64 @@ expert_data = expert_data.to_dict()
 
 
 all_s_expert = []
-all_e_expert  = []
-all_dtheta_expert  = []
-all_omega_expert  = []
-all_x_expert  = []  # Assuming you have x position data in model_data
-all_y_expert  = []  # Assuming you have y position data in model_data
+all_e_expert = []
+all_dtheta_expert = []
+all_omega_expert = []
+all_x_expert = []
+all_y_expert = []
+all_steering_expert = []
+all_throttle_expert = []
 
 for trajectory in expert_data.values():
-    all_s_expert .extend(trajectory['s'])
-    all_e_expert .extend(trajectory['e'])
-    all_dtheta_expert .extend(trajectory['dtheta'])
-    all_x_expert .extend(trajectory['x'])  # Add x position data
-    all_y_expert .extend(trajectory['y'])  # Add y position data
-    all_omega_expert .extend(trajectory["omega"])
+    all_s_expert.extend(trajectory['s'])
+    all_e_expert.extend(trajectory['e'])
+    all_dtheta_expert.extend(trajectory['dtheta'])
+    all_x_expert.extend(trajectory['x'])
+    all_y_expert.extend(trajectory['y'])
+    all_omega_expert.extend(trajectory["omega"])
+    all_steering_expert.extend(trajectory["steering"])
+    all_throttle_expert.extend(trajectory["throttle"])
 
-# Convert lists into arrays for easier handling
-all_s_expert  = np.array(all_s_expert)
-all_e_expert  = np.array(all_e_expert)
-all_dtheta_expert  = np.array(all_dtheta_expert)
-all_x_expert  = np.array(all_x_expert)
-all_y_expert  = np.array(all_y_expert)
-all_omega_expert  = np.array(all_omega_expert)
+all_s_expert = np.array(all_s_expert)
+all_e_expert = np.array(all_e_expert)
+all_dtheta_expert = np.array(all_dtheta_expert)
+all_x_expert = np.array(all_x_expert)
+all_y_expert = np.array(all_y_expert)
+all_omega_expert = np.array(all_omega_expert)
+all_steering_expert = np.array(all_steering_expert)
+all_throttle_expert = np.array(all_throttle_expert)
 
-
-added_data = pd.read_feather('Obtained Model Data/added_data_low_noise.feather')
+added_data = pd.read_feather('Obtained Model Data/added_data_low_noise_Kdd05.feather')
 added_data = added_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 added_data = added_data.to_dict()
 
-
 all_s_added = []
-all_e_added  = []
-all_dtheta_added  = []
-all_omega_added  = []
-all_x_added  = []  # Assuming you have x position data in model_data
-all_y_added  = []  # Assuming you have y position data in model_data
+all_e_added = []
+all_dtheta_added = []
+all_omega_added = []
+all_x_added = []
+all_y_added = []
+all_steering_added = []
+all_throttle_added = []
 
 for trajectory in added_data.values():
-    all_s_added .extend(trajectory['s'])
-    all_e_added .extend(trajectory['e'])
-    all_dtheta_added .extend(trajectory['dtheta'])
-    all_x_added .extend(trajectory['x'])  # Add x position data
-    all_y_added .extend(trajectory['y'])  # Add y position data
-    all_omega_added .extend(trajectory["omega"])
+    all_s_added.extend(trajectory['s'])
+    all_e_added.extend(trajectory['e'])
+    all_dtheta_added.extend(trajectory['dtheta'])
+    all_x_added.extend(trajectory['x'])
+    all_y_added.extend(trajectory['y'])
+    all_omega_added.extend(trajectory["omega"])
+    all_steering_added.extend(trajectory["steering"])
+    all_throttle_added.extend(trajectory["throttle"])
 
-# Convert lists into arrays for easier handling
-all_s_added  = np.array(all_s_added )
-all_e_added  = np.array(all_e_added )
-all_dtheta_added  = np.array(all_dtheta_added )
-all_x_added  = np.array(all_x_added )
-all_y_added  = np.array(all_y_added )
-all_omega_added  = np.array(all_omega_added)
-
+all_s_added = np.array(all_s_added)
+all_e_added = np.array(all_e_added)
+all_dtheta_added = np.array(all_dtheta_added)
+all_x_added = np.array(all_x_added)
+all_y_added = np.array(all_y_added)
+all_omega_added = np.array(all_omega_added)
+all_steering_added = np.array(all_steering_added)
+all_throttle_added = np.array(all_throttle_added)
 
 s_values = list(bucket_data_mean_std['s'].values())
 bucket_data_mean_std["s"] = s_values
@@ -88,29 +99,34 @@ all_s = []
 all_e = []
 all_dtheta = []
 all_omega = []
-all_x = []  # Assuming you have x position data in model_data
-all_y = []  # Assuming you have y position data in model_data
+all_x = []
+all_y = []
+all_steering = []
+all_throttle = []
 
 for trajectory in model_data.values():
     all_s.extend(trajectory['s'])
     all_e.extend(trajectory['e'])
     all_dtheta.extend(trajectory['dtheta'])
-    all_x.extend(trajectory['x'])  # Add x position data
-    all_y.extend(trajectory['y'])  # Add y position data
+    all_x.extend(trajectory['x'])
+    all_y.extend(trajectory['y'])
     all_omega.extend(trajectory["omega"])
+    all_steering.extend(trajectory["steering"])
+    all_throttle.extend(trajectory["throttle"])
 
-# Convert lists into arrays for easier handling
 all_s = np.array(all_s)
 all_e = np.array(all_e)
 all_dtheta = np.array(all_dtheta)
 all_x = np.array(all_x)
 all_y = np.array(all_y)
 all_omega = np.array(all_omega)
+all_steering = np.array(all_steering)
+all_throttle = np.array(all_throttle)
 
 with open("la_track.yaml", "r") as file:
     track_shape_data = yaml.safe_load(file)
 
-model_data = {"s": all_s, "e": all_e, "dtheta": all_dtheta, "omega": all_omega}
+model_data = {"s": all_s, "e": all_e, "dtheta": all_dtheta, "omega": all_omega, "x": all_x, "y": all_y, "steering": all_steering, "throttle": all_throttle}
 
 fig, axs = plt.subplots(2, 2, figsize=(16, 12))  # Adjust layout to 2x2 plots
 
@@ -133,11 +149,17 @@ point_side, = axs[1, 0].plot([], [], 'ro', label="Model x/y position")
 axs[0, 0].set_xlabel('Mean e')
 axs[0, 0].set_ylabel('Mean dtheta')
 
-axs[0, 1].set_xlabel('Mean e')
-axs[0, 1].set_ylabel('Mean omega')
+# axs[0, 1].set_xlabel('Mean e')
+# axs[0, 1].set_ylabel('Mean omega')
 
-axs[1, 1].set_xlabel('Mean dtheta')
-axs[1, 1].set_ylabel('Mean omega')
+axs[0, 1].set_xlabel('Mean e')
+axs[0, 1].set_ylabel('Mean steering')
+
+# axs[1, 1].set_xlabel('Mean dtheta')
+# axs[1, 1].set_ylabel('Mean omega')
+
+axs[1, 1].set_xlabel('Mean s')
+axs[1, 1].set_ylabel('Mean throttle')
 
 # Set the axis labels for the side plot (XY plot)
 axs[1, 0].set_xlabel("X Position")
@@ -151,8 +173,8 @@ for ax_row in axs[0, :]:
     ax_row.set_xlim(-2, 2)  # Set x-axis limit between -2 and 2 for ellipses
     ax_row.set_ylim(-6, 6)  # Set y-axis limit between -4 and 4 for ellipses
 
-axs[1,1].set_xlim(-2,2)
-axs[1,1].set_ylim(-8, 8)
+axs[1,1].set_xlim(-15,15)
+axs[1,1].set_ylim(-1, 1)
 
 
 def is_outside_ellipsoid_n_dim(noisy_vals, means, cov_matrix):
@@ -165,8 +187,6 @@ def is_outside_ellipsoid_n_dim(noisy_vals, means, cov_matrix):
     inv_cov = np.linalg.inv(cov_matrix)
     
     dist_n_dim = diff.T @ inv_cov @ diff
-
-    print(dist_n_dim)
     
     return dist_n_dim > 16
 
@@ -198,14 +218,14 @@ def wrap_to_pi(angles):
 
 added_point_plot_handles_added = {
     'edtheta_added': None,
-    'eomega_added': None,
-    'dthetaomega_added': None
+    'sthrottle_added': None,
+    'omegasteering_added': None
 }
 
 added_point_plot_handles_expert = {
     'edtheta_expert': None,
-    'eomega_expert': None,
-    'dthetaomega_expert': None
+    'sthrottle_expert': None,
+    'omegasteering_expert': None
 }
 
 
@@ -219,113 +239,130 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     for patch in axs[1,1].patches:
         patch.remove()
 
-
     if added_point_plot_handles_added['edtheta_added']:
         added_point_plot_handles_added['edtheta_added'].remove()
-    if added_point_plot_handles_added['eomega_added']:
-        added_point_plot_handles_added['eomega_added'].remove()
-    if added_point_plot_handles_added['dthetaomega_added']:
-        added_point_plot_handles_added['dthetaomega_added'].remove()
+    if added_point_plot_handles_added['sthrottle_added']:
+        added_point_plot_handles_added['sthrottle_added'].remove()
+    if added_point_plot_handles_added['omegasteering_added']:
+        added_point_plot_handles_added['omegasteering_added'].remove()
 
     if added_point_plot_handles_expert['edtheta_expert']:
         added_point_plot_handles_expert['edtheta_expert'].remove()
-    if added_point_plot_handles_expert['eomega_expert']:
-        added_point_plot_handles_expert['eomega_expert'].remove()
-    if added_point_plot_handles_expert['dthetaomega_expert']:
-        added_point_plot_handles_expert['dthetaomega_expert'].remove()
+    if added_point_plot_handles_expert['sthrottle_expert']:
+        added_point_plot_handles_expert['sthrottle_expert'].remove()
+    if added_point_plot_handles_expert['omegasteering_expert']:
+        added_point_plot_handles_expert['omegasteering_expert'].remove()
 
     # Extract relevant values for the selected bucket (for the closest s)
     mean_e = bucket_data_mean_std['mean_e'][bucket_index]
     mean_dtheta = bucket_data_mean_std['mean_dtheta'][bucket_index]
     mean_omega = bucket_data_mean_std['mean_omega'][bucket_index]
+    mean_s = bucket_data_mean_std['mean_s'][bucket_index]
+    mean_throttle = bucket_data_mean_std['mean_throttle'][bucket_index]
+    mean_steering = bucket_data_mean_std['mean_steering'][bucket_index]
+
     std_e = bucket_data_mean_std['std_e'][bucket_index]
     std_dtheta = bucket_data_mean_std['std_dtheta'][bucket_index]
     std_omega = bucket_data_mean_std['std_omega'][bucket_index]
+    std_s = bucket_data_mean_std['std_s'][bucket_index]
+    std_throttle = bucket_data_mean_std['std_throttle'][bucket_index]
+    std_steering = bucket_data_mean_std['std_steering'][bucket_index]
+
     
-    # Covariance matrices for each pair
-    cov_matrix_edtheta = np.array(bucket_data_mean_std['cov_e_dtheta'][bucket_index]).reshape(2, 2)
-    cov_matrix_eomega = np.array(bucket_data_mean_std['cov_e_omega'][bucket_index]).reshape(2, 2)
-    cov_matrix_dthetaomega = np.array(bucket_data_mean_std['cov_dtheta_omega'][bucket_index]).reshape(2, 2)
-    
+    # Covariance matrices for the new pairings
+    cov_matrix_omega_steering = np.array(bucket_data_mean_std['cov_omega_steering'][bucket_index]).reshape(2, 2)
+    cov_matrix_s_throttle = np.array(bucket_data_mean_std['cov_s_throttle'][bucket_index]).reshape(2, 2)
+
     # Ellipse (e-dtheta) angle and dimensions
-    _, eigvecs_edtheta = np.linalg.eig(cov_matrix_edtheta)
+    _, eigvecs_edtheta = np.linalg.eig(np.array(bucket_data_mean_std['cov_e_dtheta'][bucket_index]).reshape(2, 2))
     angle_edtheta = np.arctan2(eigvecs_edtheta[1, 0], eigvecs_edtheta[0, 0]) * 180 / np.pi
     width_edtheta = 4 * std_e
     height_edtheta = 4 * std_dtheta
     
-    # Plot the e-dtheta ellipse
+    # Plot the e-dtheta ellipse on the first axis
     ellipse_edtheta = Ellipse(xy=(mean_e, mean_dtheta), width=width_edtheta, height=height_edtheta, 
                               angle=angle_edtheta, edgecolor='r', facecolor='none', linewidth=3)
     axs[0, 0].add_patch(ellipse_edtheta)
 
-    # Plot the model data point on top of the ellipsoid
+    # Plot the model data point on top of the e-dtheta ellipsoid
     model_e = model_data['e'][model_index]
     model_dtheta = wrap_to_pi(model_data['dtheta'][model_index])
     point.set_data(model_e, model_dtheta)
 
-    if is_outside_ellipsoid_n_dim([model_e, model_dtheta], [mean_e, mean_dtheta], cov_matrix_edtheta):
+    if is_outside_ellipsoid_n_dim([model_e, model_dtheta], [mean_e, mean_dtheta], np.array(bucket_data_mean_std['cov_e_dtheta'][bucket_index]).reshape(2, 2)):
         point.set_marker('X') 
     else:
         point.set_marker('o')  
     point.set_data(model_e, model_dtheta)
     
-    # Now add the e-omega ellipsoid
-    _, eigvecs_eomega = np.linalg.eig(cov_matrix_eomega)
-    angle_eomega = np.arctan2(eigvecs_eomega[1, 0], eigvecs_eomega[0, 0]) * 180 / np.pi
-    width_eomega = 4 * std_e
-    height_eomega = 4 * std_omega
+    # Ellipse (omega-steering) angle and dimensions
+    _, eigvecs_omega_steering = np.linalg.eig(cov_matrix_omega_steering)
+    angle_omega_steering = np.arctan2(eigvecs_omega_steering[1, 0], eigvecs_omega_steering[0, 0]) * 180 / np.pi
+    width_omega_steering = 4 * std_e
+    height_omega_steering = 4 * std_steering
     
-    # Plot the e-omega ellipse
-    ellipse_eomega = Ellipse(xy=(mean_e, mean_omega), width=width_eomega, height=height_eomega, 
-                             angle=angle_eomega, edgecolor='g', facecolor='none', linewidth=3)
-    axs[0, 1].add_patch(ellipse_eomega)
+    # Plot the omega-steering ellipse
+    ellipse_omega_steering = Ellipse(xy=(mean_e, mean_steering), width=width_omega_steering, height=height_omega_steering, 
+                                      angle=angle_omega_steering, edgecolor='g', facecolor='none', linewidth=3)
+    axs[0, 1].add_patch(ellipse_omega_steering)
 
-    model_omega = model_data['omega'][model_index]
-    point1.set_data(model_e, model_omega)  # Update point for e-omega plot
+    model_omega = model_data['e'][model_index]
+    model_steering = model_data['steering'][model_index]
+    point1.set_data(model_omega, model_steering)  # Update point for omega-steering plot
 
-    # Now add the dtheta-omega ellipsoid
-    _, eigvecs_dthetaomega = np.linalg.eig(cov_matrix_dthetaomega)
-    angle_dthetaomega = np.arctan2(eigvecs_dthetaomega[1, 0], eigvecs_dthetaomega[0, 0]) * 180 / np.pi
-    width_dthetaomega = 4 * std_dtheta
-    height_dthetaomega = 4 * std_omega
+    # Ellipse (s-throttle) angle and dimensions
+    _, eigvecs_s_throttle = np.linalg.eig(cov_matrix_s_throttle)
+    angle_s_throttle = np.arctan2(eigvecs_s_throttle[1, 0], eigvecs_s_throttle[0, 0]) * 180 / np.pi
+    width_s_throttle = 4 * std_s
+    height_s_throttle = 4 * std_throttle
     
-    # Plot the dtheta-omega ellipse
-    ellipse_dthetaomega = Ellipse(xy=(mean_dtheta, mean_omega), width=width_dthetaomega, 
-                                  height=height_dthetaomega, angle=angle_dthetaomega, 
-                                  edgecolor='b', facecolor='none', linewidth=3)
-    axs[1, 1].add_patch(ellipse_dthetaomega)
+    # Plot the s-throttle ellipse
+    ellipse_s_throttle = Ellipse(xy=(mean_s, mean_throttle), width=width_s_throttle, height=height_s_throttle, 
+                                 angle=angle_s_throttle, edgecolor='b', facecolor='none', linewidth=3)
+    axs[1, 1].add_patch(ellipse_s_throttle)
 
-    model_dtheta = wrap_to_pi(model_data['dtheta'][model_index])
-    model_omega = model_data['omega'][model_index]
-    point2.set_data(model_dtheta, model_omega)  # Update point for dtheta-omega plot
+    model_throttle = model_data['throttle'][model_index]
+    model_s= model_data['s'][model_index]
+    point2.set_data(model_s, model_throttle)  # Update point for s-throttle plot
 
+    # Bucket range calculation
     bucket_start = bucket_data_mean_std['s'][bucket_index]
     try:
-        bucket_end =  bucket_data_mean_std['s'][bucket_index+1]
+        bucket_end = bucket_data_mean_std['s'][bucket_index + 1]
     except:
         bucket_start = bucket_data_mean_std['s'][0]
-        bucket_end =  bucket_data_mean_std['s'][1]
+        bucket_end = bucket_data_mean_std['s'][1]
 
     indices_in_bucket_added = (all_s_added >= bucket_start) & (all_s_added < bucket_end)
     indices_in_bucket_expert = (all_s_expert >= bucket_start) & (all_s_expert < bucket_end)
     
-    # Get the corresponding e, dtheta, omega values
+    # Get the corresponding e, dtheta, omega values for added and expert data
     added_e = np.array(all_e_added)[indices_in_bucket_added]
     added_dtheta = np.array(all_dtheta_added)[indices_in_bucket_added]
     added_omega = np.array(all_omega_added)[indices_in_bucket_added]
+    added_steering = np.array(all_steering_added)[indices_in_bucket_added]
+    added_s = np.array(all_s_added)[indices_in_bucket_added]
+    added_throttle = np.array(all_throttle_added)[indices_in_bucket_added]
+
 
     expert_e = np.array(all_e_expert)[indices_in_bucket_expert]
     expert_dtheta = np.array(all_dtheta_expert)[indices_in_bucket_expert]
     expert_omega = np.array(all_omega_expert)[indices_in_bucket_expert]
+    expert_steering = np.array(all_steering_expert)[indices_in_bucket_expert]
+    expert_s = np.array(all_s_expert)[indices_in_bucket_expert]
+    expert_throttle = np.array(all_throttle_expert)[indices_in_bucket_expert]
 
-    added_point_plot_handles_added['edtheta_added'] = axs[0, 0].plot(added_e, added_dtheta, 'yX', alpha=0.1, label = "Added Points")[0]  
-    added_point_plot_handles_added['eomega_added'] = axs[0, 1].plot(added_e, added_omega, 'yX', alpha=0.1)[0]  
-    added_point_plot_handles_added['dthetaomega_added'] = axs[1, 1].plot(added_dtheta, added_omega, 'yX', alpha=0.1)[0] 
 
 
-    added_point_plot_handles_expert['edtheta_expert'] = axs[0, 0].plot(expert_e, expert_dtheta, 'mX', alpha=0.02, label= "Expert Points")[0] 
-    added_point_plot_handles_expert['eomega_expert'] = axs[0, 1].plot(expert_e, expert_omega, 'mX', alpha=0.02)[0] 
-    added_point_plot_handles_expert['dthetaomega_expert'] = axs[1, 1].plot(expert_dtheta, expert_omega, 'mX', alpha=0.02)[0]  
+    # Plot added points (omega-steering and s-throttle)
+    added_point_plot_handles_added['edtheta_added'] = axs[0, 0].plot(added_e, added_dtheta, 'yX', alpha=0.1)[0]
+    added_point_plot_handles_added['omegasteering_added'] = axs[0, 1].plot(added_e, added_steering, 'yX', alpha=0.1)[0]  
+    added_point_plot_handles_added['sthrottle_added'] = axs[1, 1].plot(added_s, added_throttle, 'yX', alpha=0.1)[0]
+
+    # Plot expert points (omega-steering and s-throttle)
+    added_point_plot_handles_expert['edtheta_expert'] = axs[0, 0].plot(expert_e, expert_dtheta, 'mX', alpha=0.02)[0]
+    added_point_plot_handles_expert['omegasteering_expert'] = axs[0, 1].plot(expert_e, expert_steering, 'mX', alpha=0.02)[0] 
+    added_point_plot_handles_expert['sthrottle_expert'] = axs[1, 1].plot(expert_s, expert_throttle, 'mX', alpha=0.02)[0] 
 
     legend_handles = [
         Line2D([0], [0], marker='X', color='y', markerfacecolor='y', markersize=8, alpha=1.0, label='Added Points'),
@@ -333,17 +370,18 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     ]
 
     # Add the legend with the custom handles
-    axs[0, 0].legend(handles=legend_handles, labels=["Added Points", "Expert Points"])
+    axs[0, 1].legend(handles=legend_handles, labels=["Added Points", "Expert Points"])
 
-    
-    # Update the trajectory line with the new model point
-    # line.set_data(model_data['e'][:model_index+1], wrap_to_pi(model_data['dtheta'][:model_index+1]))
-    
+    axs[1,1].set_xlim(bucket_end-2,bucket_start+2)
+    axs[1,1].set_ylim(-1, 1)
+
     # Update the side plot with the x and y positions
-    line_side.set_data(all_x[:model_index+1], all_y[:model_index+1])
+    line_side.set_data(all_x[:model_index + 1], all_y[:model_index + 1])
     point_side.set_data(all_x[model_index], all_y[model_index])
 
     return line, point, line1, point1, line2, point2, line_side, point_side  # Return the updated objects
+
+
 
 # Function to find the closest s from model data to a given s in bucket data
 def find_closest_bucket_s(model_s):
