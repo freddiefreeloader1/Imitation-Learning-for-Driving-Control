@@ -195,8 +195,10 @@ model 29:
 
 
 
-model 30:
+model 30: USED
 
+- with Kdd 0.3
+- without prev action
 - with noise values 0.25 pos, 1 heading angle, 0.75 omega
 - added l1 regularization with weight 1e-6
 - with omega
@@ -206,6 +208,11 @@ model 30:
 - towards mean traj
 - for every 1 point
 - wrap to pi error fixed
+
+- COLLISION: 4
+- PERCENTAGE: 2.43
+- OTT: 29.78
+
 
 
 
@@ -295,7 +302,7 @@ model 36:
 - wrap to pi error fixed
 
 
-model 37:
+model 37: USED
 
 - with Kdd = 0.5 (changed from 0.3)
 - with previous actions (with penalty weight 3)
@@ -309,7 +316,11 @@ model 37:
 - for every 1 point
 - wrap to pi error fixed
 
-model 38:
+- COLLISION: 8
+- PERCENTAGE: 0.0
+- OTT: 27.60
+
+model 38: USED
 
 - with Kdd = 0.6 (changed from 0.3)
 - with previous actions (with penalty weight 3)
@@ -323,8 +334,12 @@ model 38:
 - for every 1 point
 - wrap to pi error fixed
 
+- COLLISION: 2
+- PERCENTAGE: 0.0
+- OTT: 27.09
 
-model 39:
+
+model 39: USED
 
 - with Kdd = 0.5 (changed from 0.3)
 - with previous actions (with penalty weight 3)
@@ -337,6 +352,11 @@ model 39:
 - for every 1 point
 - wrap to pi error fixed
 
+- COLLISION: 0
+- PERCENTAGE: 0.16
+- OTT: 32.95
+
+
 model 40:
 
 - trained with pure pursuit real data
@@ -346,3 +366,39 @@ model 40:
 - noise : pos 0.7, angle 2
 - wrap to pi error fixed
 - no vel augmentation
+
+
+model 41: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- without previous actions
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION:126
+- PERCENTAGE:7.47
+- OTT:29.92
+
+
+model 42: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- without ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 0
+- PERCENTAGE: 0.0
+- OTT: 31.65

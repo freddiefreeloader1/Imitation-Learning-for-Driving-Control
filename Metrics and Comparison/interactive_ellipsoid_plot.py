@@ -7,6 +7,7 @@ import sys
 import yaml
 from matplotlib.widgets import Button, Slider
 from matplotlib.lines import Line2D
+import re
 
 sys.path.append('Utils')
 
@@ -90,7 +91,13 @@ s_values = list(bucket_data_mean_std['s'].values())
 bucket_data_mean_std["s"] = s_values
 
 # Load the model data
-model_data = pd.read_feather('Obtained Model Data/model18_dist_wrapped.feather')
+
+file_path = 'Obtained Model Data/model42_dist_wrapped.feather'
+
+# Regular expression to find the number in the filename
+model_number = int(re.search(r'model(\d+)', file_path).group(1))
+
+model_data = pd.read_feather(file_path)
 model_data = model_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 model_data = model_data.to_dict()
 
@@ -189,6 +196,9 @@ if check_coll:
 
     print(f'Number of collisions with inner boundary: {inner_collisions}')
     print(f'Number of collisions with outer boundary: {outer_collisions}')
+else:
+    inner_collisions, outer_collisions = 0, 0
+
 
 
 def is_outside_ellipsoid_n_dim(noisy_vals, means, cov_matrix):
@@ -395,6 +405,9 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
     line_side.set_linewidth(0.3)
     point_side.set_data(all_x[model_index], all_y[model_index])
 
+
+    axs[1, 0].text(0.3, 0.95, f'Collisions: {inner_collisions + outer_collisions}', transform=axs[1, 0].transAxes, ha='right', va='top', fontsize=12, color='red')
+
     return line, point, line1, point1, line2, point2, line_side, point_side  # Return the updated objects
 
 
@@ -422,6 +435,11 @@ def update_slider(val):
     glob_frame = int(slider.val)  # Update the global frame based on slider position
     bucket_index = find_closest_bucket_s(model_data['s'][glob_frame])
     plot_ellipsoid_and_model(bucket_index, glob_frame)
+
+
+    if glob_frame == len(all_s) - 1:
+        save_frame()
+
     return line, point, line1, point1, line2, point2, line_side, point_side
 
 # Function to start the animation from the selected glob_frame
@@ -441,6 +459,12 @@ def update(frame):
     bucket_index = find_closest_bucket_s(model_data['s'][glob_frame])
     plot_ellipsoid_and_model(bucket_index, glob_frame)
     return line, point, line1, point1, line2, point2, line_side, point_side
+
+def save_frame():
+    # Save the figure only when at the last frame
+    print("Saving frame at the last step...")
+    plt.savefig(f'figures/ellipsoids_and_overlayed_trajectories_{model_number}.svg', format='svg')  
+    print("Frame saved as SVG!")
 
 # Create the animation
 ani = FuncAnimation(fig, update, frames=len(all_s), interval=0.1, repeat=False)
