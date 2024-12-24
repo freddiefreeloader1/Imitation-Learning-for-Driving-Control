@@ -402,3 +402,22 @@ model 42: USED
 - COLLISION: 0
 - PERCENTAGE: 0.0
 - OTT: 31.65
+
+
+model 43: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: -
+- PERCENTAGE: -
+- OTT: -
+- NOT STABLE

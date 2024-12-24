@@ -8,6 +8,8 @@ import yaml
 from matplotlib.widgets import Button, Slider
 from matplotlib.lines import Line2D
 import re
+from matplotlib.transforms import Bbox
+import os
 
 sys.path.append('Utils')
 
@@ -134,7 +136,7 @@ with open("la_track.yaml", "r") as file:
 
 model_data = {"s": all_s, "e": all_e, "dtheta": all_dtheta, "omega": all_omega, "x": all_x, "y": all_y, "steering": all_steering, "throttle": all_throttle}
 
-fig, axs = plt.subplots(2, 2, figsize=(16, 12))  # Adjust layout to 2x2 plots
+fig, axs = plt.subplots(2, 2, figsize=(20, 14))  # Adjust layout to 2x2 plots
 
 # Initialize model_index globally
 model_index = 0  # Set to the first model index initially
@@ -422,7 +424,7 @@ def find_closest_bucket_s(model_s):
 def stop_animation(event):
     ani.event_source.stop()
 
-ax_slider = plt.axes([0.1, 0.01, 0.6, 0.075])  # Position of the slider
+ax_slider = plt.axes([0.1, 0.005, 0.6, 0.075]) 
 slider = Slider(ax_slider, 'Frame', 0, len(all_s)-1, valinit=0, valstep=1)
 
 
@@ -438,7 +440,7 @@ def update_slider(val):
 
 
     if glob_frame == len(all_s) - 1:
-        save_frame()
+        save_frame(axs)
 
     return line, point, line1, point1, line2, point2, line_side, point_side
 
@@ -460,24 +462,58 @@ def update(frame):
     plot_ellipsoid_and_model(bucket_index, glob_frame)
     return line, point, line1, point1, line2, point2, line_side, point_side
 
-def save_frame():
-    # Save the figure only when at the last frame
-    print("Saving frame at the last step...")
-    plt.savefig(f'figures/ellipsoids_and_overlayed_trajectories_{model_number}.svg', format='svg')  
-    print("Frame saved as SVG!")
+def full_extent(ax, pad=0.1):
+    """Get the full extent of an axes, including axes labels, tick labels, and
+    titles."""
+    # For text objects, we need to draw the figure first, otherwise the extents
+    # are undefined.
+    ax.figure.canvas.draw()
+    items = ax.get_xticklabels() + ax.get_yticklabels() 
+#    items += [ax, ax.title, ax.xaxis.label, ax.yaxis.label]
+    items += [ax, ax.title]
+    bbox = Bbox.union([item.get_window_extent() for item in items])
+
+    return bbox.expanded(1.0 + pad, 1.0 + pad)
+
+
+def save_frame(axs):
+    # Create the directory if it doesn't exist
+    save_path = f'figures/model{model_number}'
+    os.makedirs(save_path, exist_ok=True)  # Create directory if it doesn't exist
+
+    # Save the full figure
+    print("Saving full figure at the last step...")
+    plt.savefig(f'{save_path}/ellipsoids_and_overlayed_trajectories_{model_number}.svg', format='svg')
+    print("Full figure saved as SVG!")
+
+    # Save each individual axis
+    extent = full_extent(axs[1, 0], pad=0).transformed(fig.dpi_scale_trans.inverted())
+    axs[1, 0].figure.savefig(f'{save_path}/X-Y_overlayed_model_{model_number}.svg', bbox_inches=extent)
+
+    extent = full_extent(axs[0, 0]).transformed(fig.dpi_scale_trans.inverted())
+    axs[0, 0].figure.savefig(f'{save_path}/e_dtheta_model_{model_number}.svg', bbox_inches=extent)
+
+    extent = full_extent(axs[0, 1]).transformed(fig.dpi_scale_trans.inverted())
+    axs[0, 1].figure.savefig(f'{save_path}/e_steering_model_{model_number}.svg', bbox_inches=extent)
+
+    extent = full_extent(axs[1, 1]).transformed(fig.dpi_scale_trans.inverted())
+    axs[1, 1].figure.savefig(f'{save_path}/s_throttle_model_{model_number}.svg', bbox_inches=extent)
+
+    print("Frames saved successfully!")
 
 # Create the animation
 ani = FuncAnimation(fig, update, frames=len(all_s), interval=0.1, repeat=False)
 
 
-# Create Play button
-ax_button_play = plt.axes([0.85, 0.01, 0.1, 0.075])  # Button position
+# Play button position
+ax_button_play = plt.axes([0.85, 0.00, 0.1, 0.075])  # Lowered position
 button_start = Button(ax_button_play, 'Play', color='lightgoldenrodyellow', hovercolor='orange')
 button_start.on_clicked(play_animation)
 
-# Create Stop button
-ax_button_stop = plt.axes([0.75, 0.01, 0.1, 0.075])  # Button position
+# Stop button position
+ax_button_stop = plt.axes([0.75, 0.00, 0.1, 0.075])  # Lowered position
 button_stop = Button(ax_button_stop, 'Stop', color='lightgoldenrodyellow', hovercolor='orange')
 button_stop.on_clicked(stop_animation)
+
 
 plt.show()
