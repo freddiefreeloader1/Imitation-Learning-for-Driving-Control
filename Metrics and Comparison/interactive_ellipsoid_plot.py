@@ -94,7 +94,7 @@ bucket_data_mean_std["s"] = s_values
 
 # Load the model data
 
-file_path = 'Obtained Model Data/model42_dist_wrapped.feather'
+file_path = 'Obtained Model Data/model44_dist_wrapped.feather'
 
 # Regular expression to find the number in the filename
 model_number = int(re.search(r'model(\d+)', file_path).group(1))
@@ -474,7 +474,6 @@ def full_extent(ax, pad=0.1):
     bbox = Bbox.union([item.get_window_extent() for item in items])
 
     return bbox.expanded(1.0 + pad, 1.0 + pad)
-
 
 def save_frame(axs):
     # Create the directory if it doesn't exist

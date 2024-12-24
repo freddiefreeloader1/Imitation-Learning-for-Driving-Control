@@ -15,7 +15,7 @@ expert_data = expert_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndar
 expert_data = expert_data.to_dict()
 
 def extract_trajectory_data(data_dict, key):
-    trajectory = data_dict[key]
+    trajectory = data_dict[key] 
     s = np.array(trajectory['s'])
     e = np.array(trajectory['e'])
     dtheta = np.array(trajectory['dtheta'])
@@ -35,7 +35,13 @@ all_expert_data = np.vstack(expert_trajectories)
 
 def downsample_data(data, max_samples=150000):
     if len(data) > max_samples:
-        indices = np.random.choice(len(data), max_samples, replace=False)
+        step = len(data) // max_samples
+        
+        if step == 0:
+            step = 1
+        
+        indices = np.linspace(0, len(data) - 1, max_samples, dtype=int)
+        
         return data[indices]
     else:
         return data

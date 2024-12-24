@@ -318,7 +318,7 @@ model 37: USED
 
 - COLLISION: 8
 - PERCENTAGE: 0.0
-- OTT: 27.60
+- OTT: 27.73
 
 model 38: USED
 
@@ -336,7 +336,7 @@ model 38: USED
 
 - COLLISION: 2
 - PERCENTAGE: 0.0
-- OTT: 27.09
+- OTT: 33.75
 
 
 model 39: USED
@@ -354,7 +354,7 @@ model 39: USED
 
 - COLLISION: 0
 - PERCENTAGE: 0.16
-- OTT: 32.95
+- OTT: 31.10
 
 
 model 40:
@@ -383,7 +383,7 @@ model 41: USED
 
 - COLLISION:126
 - PERCENTAGE:7.47
-- OTT:29.92
+- OTT:27.61
 
 
 model 42: USED
@@ -401,7 +401,7 @@ model 42: USED
 
 - COLLISION: 0
 - PERCENTAGE: 0.0
-- OTT: 31.65
+- OTT: 25.79
 
 
 model 43: USED
@@ -421,3 +421,21 @@ model 43: USED
 - PERCENTAGE: -
 - OTT: -
 - NOT STABLE
+
+
+model 44: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-8
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 13
+- PERCENTAGE: 4.30
+- OTT: 29.03
