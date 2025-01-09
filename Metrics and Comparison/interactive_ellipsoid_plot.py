@@ -16,7 +16,7 @@ sys.path.append('Utils')
 from plot_track import plot_track
 from check_collision import check_collision
 
-check_coll = True
+check_coll = False
 
 # Load the bucket mean and std data (assuming the bucket_data_mean_std is already loaded as a dictionary)
 bucket_data_mean_std = pd.read_feather('Obtained Model Data/bucket_data_mean_std.feather')
@@ -94,7 +94,7 @@ bucket_data_mean_std["s"] = s_values
 
 # Load the model data
 
-file_path = 'Obtained Model Data/model44_dist_wrapped.feather'
+file_path = 'Obtained Model Data/model39_dist_wrapped.feather'
 
 # Regular expression to find the number in the filename
 model_number = int(re.search(r'model(\d+)', file_path).group(1))
@@ -154,20 +154,16 @@ point2, = axs[1, 1].plot([], [], 'bo', label="Model data point")
 line_side, = axs[1, 0].plot([], [], 'g-', label="Model x/y trajectory")
 point_side, = axs[1, 0].plot([], [], 'ro', label="Model x/y position")
 
-axs[0, 0].set_xlabel('Mean e')
-axs[0, 0].set_ylabel('Mean dtheta')
+axs[0, 0].set_xlabel(r'Mean $e_y$')  # LaTeX for e_y
+axs[0, 0].set_ylabel(r'Mean $e_\Psi$')  # LaTeX for e_Psi
 
-# axs[0, 1].set_xlabel('Mean e')
-# axs[0, 1].set_ylabel('Mean omega')
+# Update labels for subplot at axs[0, 1]
+axs[0, 1].set_xlabel(r'Mean $e_y$')  # LaTeX for e_y
+axs[0, 1].set_ylabel(r'Mean $\delta$')  # LaTeX for delta
 
-axs[0, 1].set_xlabel('Mean e')
-axs[0, 1].set_ylabel('Mean steering')
-
-# axs[1, 1].set_xlabel('Mean dtheta')
-# axs[1, 1].set_ylabel('Mean omega')
-
-axs[1, 1].set_xlabel('Mean s')
-axs[1, 1].set_ylabel('Mean throttle')
+# Update labels for subplot at axs[1, 1]
+axs[1, 1].set_xlabel(r'Mean $s$')  # LaTeX for s
+axs[1, 1].set_ylabel(r'Mean throttle')
 
 # Set the axis labels for the side plot (XY plot)
 axs[1, 0].set_xlabel("X Position")
