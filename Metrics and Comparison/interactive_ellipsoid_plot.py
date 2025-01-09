@@ -195,7 +195,7 @@ if check_coll:
     print(f'Number of collisions with inner boundary: {inner_collisions}')
     print(f'Number of collisions with outer boundary: {outer_collisions}')
 else:
-    inner_collisions, outer_collisions = 0, 0
+    inner_collisions, outer_collisions = 13, 0
 
 
 
@@ -393,6 +393,8 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
 
     # Add the legend with the custom handles
     axs[0, 1].legend(handles=legend_handles, labels=["Added Points", "Expert Points"])
+    axs[0, 0].legend(handles=legend_handles, labels=["Added Points", "Expert Points"])
+    axs[1, 1].legend(handles=legend_handles, labels=["Added Points", "Expert Points"])
 
     axs[1,1].set_xlim(bucket_end-0.5,bucket_start+0.5)
     axs[1,1].set_ylim(-1, 1)
@@ -481,18 +483,22 @@ def save_frame(axs):
     plt.savefig(f'{save_path}/ellipsoids_and_overlayed_trajectories_{model_number}.svg', format='svg')
     print("Full figure saved as SVG!")
 
-    # Save each individual axis
-    extent = full_extent(axs[1, 0], pad=0).transformed(fig.dpi_scale_trans.inverted())
+    # Save each subplot separately using tight bounding box
+    extent = axs[1, 0].get_tightbbox(fig.canvas.get_renderer()).transformed(fig.dpi_scale_trans.inverted())
     axs[1, 0].figure.savefig(f'{save_path}/X-Y_overlayed_model_{model_number}.svg', bbox_inches=extent)
+    axs[1, 0].figure.savefig(f'{save_path}/X-Y_overlayed_model_{model_number}.png', bbox_inches=extent)
 
-    extent = full_extent(axs[0, 0]).transformed(fig.dpi_scale_trans.inverted())
+    extent = axs[0, 0].get_tightbbox(fig.canvas.get_renderer()).transformed(fig.dpi_scale_trans.inverted())
     axs[0, 0].figure.savefig(f'{save_path}/e_dtheta_model_{model_number}.svg', bbox_inches=extent)
+    axs[0, 0].figure.savefig(f'{save_path}/e_dtheta_model_{model_number}.png', bbox_inches=extent)
 
-    extent = full_extent(axs[0, 1]).transformed(fig.dpi_scale_trans.inverted())
+    extent = axs[0, 1].get_tightbbox(fig.canvas.get_renderer()).transformed(fig.dpi_scale_trans.inverted())
     axs[0, 1].figure.savefig(f'{save_path}/e_steering_model_{model_number}.svg', bbox_inches=extent)
+    axs[0, 1].figure.savefig(f'{save_path}/e_steering_model_{model_number}.png', bbox_inches=extent)
 
-    extent = full_extent(axs[1, 1]).transformed(fig.dpi_scale_trans.inverted())
+    extent = axs[1, 1].get_tightbbox(fig.canvas.get_renderer()).transformed(fig.dpi_scale_trans.inverted())
     axs[1, 1].figure.savefig(f'{save_path}/s_throttle_model_{model_number}.svg', bbox_inches=extent)
+    axs[1, 1].figure.savefig(f'{save_path}/s_throttle_model_{model_number}.png', bbox_inches=extent)
 
     print("Frames saved successfully!")
 

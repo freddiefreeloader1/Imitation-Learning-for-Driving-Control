@@ -6,7 +6,7 @@ from scipy.signal import welch
 
 # List of models to process
 models = ['model30_dist_wrapped.feather', 'model37_dist_wrapped.feather', 'model38_dist_wrapped.feather', 
-          "model39_dist_wrapped.feather",  "model41_dist_wrapped.feather",  "model42_dist_wrapped.feather", 
+          "model39_dist_wrapped.feather",  "model41_dist_wrapped.feather",  "model42_dist_wrapped.feather", "model44_dist_wrapped.feather", 
           "all_trajectories_filtered.feather"]
 
 num_models = len(models)
@@ -52,7 +52,15 @@ for i, model in enumerate(models):
 
     # Plot the PSD on the corresponding subplot (using a logarithmic scale for better visualization)
     axes[i].semilogy(f, Pxx)  # Plot in log scale to reduce large magnitude range
-    axes[i].set_title(f'PSD of Steering Data for Model {i + 1}')
+    
+    # Check if the model is 'all_trajectories_filtered.feather'
+    if model == "all_trajectories_filtered.feather":
+        axes[i].set_title('Expert FFT')
+    else:
+        # Extract model number from the filename (e.g., 'model30' -> 30)
+        model_number = model.split('_')[0].replace('model', '')
+        axes[i].set_title(f'Model {model_number}')
+    
     axes[i].set_xlabel('Frequency (Hz)')
     axes[i].set_ylabel('Power Spectral Density (V^2/Hz)')
     axes[i].grid(True)
@@ -68,8 +76,8 @@ for i, model in enumerate(models):
     
     # Calculate SNR
     snr = signal_energy / noise_energy
-    axes[i].text(0.95, 0.95, f'SNR: {snr:.2f}', transform=axes[i].transAxes, ha='right', va='top', fontsize=12, 
-                 bbox=dict(facecolor='white', alpha=0.7))
+    # axes[i].text(0.95, 0.95, f'SNR: {snr:.2f}', transform=axes[i].transAxes, ha='right', va='top', fontsize=12, 
+    #              bbox=dict(facecolor='white', alpha=0.7))
 
 # Hide unused subplots (if there are any)
 for j in range(i + 1, len(axes)):
