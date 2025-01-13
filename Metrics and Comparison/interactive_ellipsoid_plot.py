@@ -10,13 +10,14 @@ from matplotlib.lines import Line2D
 import re
 from matplotlib.transforms import Bbox
 import os
+import matplotlib.colors as colors
 
 sys.path.append('Utils')
 
 from plot_track import plot_track
 from check_collision import check_collision
 
-check_coll = True
+check_coll = False
 
 # Load the bucket mean and std data (assuming the bucket_data_mean_std is already loaded as a dictionary)
 bucket_data_mean_std = pd.read_feather('Obtained Model Data/bucket_data_mean_std.feather')
@@ -24,7 +25,7 @@ bucket_data_mean_std = bucket_data_mean_std.applymap(lambda x: x.tolist() if isi
 bucket_data_mean_std = bucket_data_mean_std.to_dict()
 
 
-expert_data = pd.read_feather('Obtained Model Data/pure_pursuit_artificial_df.feather')
+expert_data = pd.read_feather('Obtained Model Data/all_trajectories_filtered.feather')
 expert_data = expert_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 expert_data = expert_data.to_dict()
 
@@ -57,7 +58,7 @@ all_omega_expert = np.array(all_omega_expert)
 all_steering_expert = np.array(all_steering_expert)
 all_throttle_expert = np.array(all_throttle_expert)
 
-added_data = pd.read_feather('Obtained Model Data/added_data_low_noise_Kdd05.feather')
+added_data = pd.read_feather('Obtained Model Data/added_data_low_noise_Kdd03.feather')
 added_data = added_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 added_data = added_data.to_dict()
 
@@ -94,7 +95,7 @@ bucket_data_mean_std["s"] = s_values
 
 # Load the model data
 
-file_path = 'Obtained Model Data/model40_dist_wrapped.feather'
+file_path = 'Obtained Model Data/model45_dist_wrapped.feather'
 
 # Regular expression to find the number in the filename
 model_number = int(re.search(r'model(\d+)', file_path).group(1))
@@ -182,8 +183,8 @@ left_track_x, left_track_y, right_track_x, right_track_y = plot_track(fig, axs[1
 
 # Set up the ellipses plots
 for ax_row in axs[0, :]:
-    ax_row.set_xlim(-2, 2)  # Set x-axis limit between -2 and 2 for ellipses
-    ax_row.set_ylim(-6, 6)  # Set y-axis limit between -4 and 4 for ellipses
+    ax_row.set_xlim(-1.2, 1.2)  # Set x-axis limit between -2 and 2 for ellipses
+    ax_row.set_ylim(-4, 4)  # Set y-axis limit between -4 and 4 for ellipses
 
 axs[1,1].set_xlim(-15,15)
 axs[1,1].set_ylim(-1, 1)
@@ -195,7 +196,7 @@ if check_coll:
     print(f'Number of collisions with inner boundary: {inner_collisions}')
     print(f'Number of collisions with outer boundary: {outer_collisions}')
 else:
-    inner_collisions, outer_collisions = 13, 0
+    inner_collisions, outer_collisions = 24, 0
 
 
 
@@ -377,18 +378,18 @@ def plot_ellipsoid_and_model(bucket_index, model_index):
 
 
     # Plot added points (omega-steering and s-throttle)
-    added_point_plot_handles_added['edtheta_added'] = axs[0, 0].plot(added_e, added_dtheta, 'yX', alpha=0.05)[0]
-    added_point_plot_handles_added['omegasteering_added'] = axs[0, 1].plot(added_e, added_steering, 'yX', alpha=0.05)[0]  
-    # added_point_plot_handles_added['sthrottle_added'] = axs[1, 1].plot(added_s, added_throttle, 'yX', alpha=0.1)[0]
+    added_point_plot_handles_added['edtheta_added'] = axs[0, 0].plot(added_e, added_dtheta, 'yo', markerfacecolor = colors.to_rgba("y", 0.1), markeredgecolor = "None", markersize = 5)[0]
+    added_point_plot_handles_added['omegasteering_added'] = axs[0, 1].plot(added_e, added_steering, 'yo', markerfacecolor = colors.to_rgba("y", 0.1), markeredgecolor = "None",  markersize = 5)[0]  
+    # added_point_plot_handles_added['sthrottle_added'] = axs[1, 1].plot(added_s, added_throttle, 'yx', alpha=0.1)[0]
 
     # Plot expert points (omega-steering and s-throttle)
-    added_point_plot_handles_expert['edtheta_expert'] = axs[0, 0].plot(expert_e, expert_dtheta, 'mX', alpha=0.01)[0]
-    added_point_plot_handles_expert['omegasteering_expert'] = axs[0, 1].plot(expert_e, expert_steering, 'mX', alpha=0.01)[0] 
-    # added_point_plot_handles_expert['sthrottle_expert'] = axs[1, 1].plot(expert_s, expert_throttle, 'mX', alpha=0.02)[0] 
+    added_point_plot_handles_expert['edtheta_expert'] = axs[0, 0].plot(expert_e, expert_dtheta, 'mo', markerfacecolor = colors.to_rgba("m", 0.01), markeredgecolor = "None", markersize = 5)[0]
+    added_point_plot_handles_expert['omegasteering_expert'] = axs[0, 1].plot(expert_e, expert_steering, 'mo', markerfacecolor = colors.to_rgba("m", 0.01), markeredgecolor = "None", markersize = 5)[0] 
+    # added_point_plot_handles_expert['sthrottle_expert'] = axs[1, 1].plot(expert_s, expert_throttle, 'mx', alpha=0.02)[0] 
 
     legend_handles = [
-        Line2D([0], [0], marker='X', color='y', markerfacecolor='y', markersize=8, alpha=1.0, label='Added Points'),
-        Line2D([0], [0], marker='X', color='m', markerfacecolor='m', markersize=8, alpha=1.0, label='Expert Points')
+        Line2D([0], [0], marker='o', color='y', markerfacecolor='y', markersize=8, alpha=1.0, label='Added Points'),
+        Line2D([0], [0], marker='o', color='m', markerfacecolor='m', markersize=8, alpha=1.0, label='Expert Points')
     ]
 
     # Add the legend with the custom handles

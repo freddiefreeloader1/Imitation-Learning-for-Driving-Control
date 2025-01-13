@@ -195,7 +195,7 @@ model 29:
 
 
 
-model 30: USED
+model 30:
 
 - with Kdd 0.3
 - without prev action
@@ -439,3 +439,21 @@ model 44: USED
 - COLLISION: 13
 - PERCENTAGE: 4.30
 - OTT: 29.03
+
+
+model 45: USED
+
+- with Kdd = 0.3 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 24
+- PERCENTAGE: 5.90
+- OTT: 30.66

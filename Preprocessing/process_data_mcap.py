@@ -27,6 +27,7 @@ def plot_state(state, track_shape_data, animate=False):
 
     # Extract columns from the DataFrame
     columns = ['s', 'e', 'dtheta', 'vx', 'vy', 'omega', 'throttle', 'steering', 'curvature', 'x', 'heading_angle', 'total_curvature']
+    names = ['s', r'$e_y$', r'$e_\Psi$ ', r'$v^{body}_x$',  r'$v^{body}_y$', r'$\omega$', r'$\tau$', r'$\delta$', 'curvature', 'x', 'heading_angle', 'total_curvature']
 
     # Plotting function for animation
     def update(frame):
@@ -36,9 +37,9 @@ def plot_state(state, track_shape_data, animate=False):
             if column != 'x' and column != 'y' and column != 'curvature' and column != 'total_curvature':
                 ax = axes[i//3, i%3]
                 ax.plot(state.index[:frame], state[column].values[:frame])
-                ax.set_title(column)
+                ax.set_title(names[i])
                 ax.set_xlabel('time')
-                ax.set_ylabel(column)
+                ax.set_ylabel(names[i])
             elif column == 'x':
                 ax.plot(state['x'][:frame], state['y'][:frame])
                 plot_track(fig, ax, track_shape_data)
@@ -47,13 +48,13 @@ def plot_state(state, track_shape_data, animate=False):
                 ax.set_ylabel('y')
             elif column == 'curvature':
                 ax.plot(track_shape_data['track']['curvature'][:frame])
-                ax.set_title('curvature')
-                ax.set_xlabel('time')
+                ax.set_title('curvature of the track')
+                ax.set_xlabel('s')
                 ax.set_ylabel('curvature')
             elif column == 'total_curvature':
                 ax.plot(track_shape_data['track']['tangentAngle'][:frame])
-                ax.set_title('total curvature')
-                ax.set_xlabel('time')
+                ax.set_title('cumulative curvature of the track')
+                ax.set_xlabel('s')
                 ax.set_ylabel('total curvature')
 
         plt.tight_layout()
@@ -68,10 +69,10 @@ def plot_state(state, track_shape_data, animate=False):
         for i, column in enumerate(columns):
             ax = axes[i // 3, i % 3]
             if column != 'x' and column != 'y' and column != 'curvature' and column != 'total_curvature':
-                ax.plot(state.index.to_numpy(), state[column].to_numpy())
-                ax.set_title(column)
+                ax.plot(state["s"].to_numpy(), state[column].to_numpy())
+                ax.set_title(names[i] + " vs time")
                 ax.set_xlabel('time')
-                ax.set_ylabel(column)
+                ax.set_ylabel(names[i])
             elif column == 'x':
                 ax.plot(state['x'].to_numpy(), state['y'].to_numpy())
                 plot_track(fig, ax, track_shape_data)
@@ -91,6 +92,7 @@ def plot_state(state, track_shape_data, animate=False):
 
         plt.tight_layout()
         plt.show()
+        fig.savefig('figures/expert_states_demo.png', dpi=300)  
 
 def diffmid(data, time):
     data = np.asarray(data)
