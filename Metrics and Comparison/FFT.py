@@ -13,6 +13,9 @@ models = ['model37_dist_wrapped.feather', 'model38_dist_wrapped.feather',
 
 num_models = len(models)
 
+title_map = {39: 1, 37: 2, 38: 3, 41: 4, 42: 5, 44: 7, 45: 8}
+
+
 # Check if there is only one model
 if num_models == 1:
     # If only one model, create a single plot (not a subplot grid)
@@ -23,7 +26,7 @@ else:
     n_rows = math.ceil(num_models / n_cols)  # Calculate the number of rows needed
 
     # Create the grid of subplots
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(12, 4 * n_rows))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(16, 4 * n_rows))
 
     # Flatten axes to make indexing easier
     axes = axes.flatten()
@@ -70,11 +73,11 @@ for i, model in enumerate(models):
         
         # Check if the model is 'all_trajectories_filtered.feather'
         if model == "all_trajectories_filtered.feather":
-            axes[i].set_title('Expert DFT')
+            axes[i].set_title('Expert DFT', fontsize=20, fontweight="bold")
         else:
             # Extract model number from the filename (e.g., 'model30' -> 30)
             model_number = model.split('_')[0].replace('model', '')
-            axes[i].set_title(f'Model {model_number}')
+            axes[i].set_title(f'Model {title_map[int(model_number)]}', fontsize=20, fontweight="bold")
         
         axes[i].set_xlabel('Frequency (Hz)')
         axes[i].set_ylabel('Power Spectral Density (V^2/Hz)')
