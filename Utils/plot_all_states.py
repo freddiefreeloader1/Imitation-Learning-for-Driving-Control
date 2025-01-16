@@ -23,7 +23,7 @@ with open("la_track.yaml", "r") as file:
     track_shape_data = yaml.safe_load(file)
 
 # Select one model to plot (example: the model 'model45_dist_wrapped.feather')
-model = 'pure_pursuit_artificial_df.feather'
+model = 'model42_dist_wrapped.feather'
 
 # Extract the model number from the filename using a regular expression
 model_number_match = re.search(r'(\d+)', model)
@@ -53,9 +53,9 @@ gs_right = gridspec.GridSpecFromSubplotSpec(3, 2, subplot_spec=gs[1], height_rat
 axes = [plt.subplot(gs_right[i]) for i in range(6)]
 
 # Define state labels with the requested symbols
-state_labels = [r'$\mathbf{\delta}$', r'$\mathbf{e_y}$', r'$\mathbf{e_\Psi}$', 
-                r'$\mathbf{v_x^{body}}$', r'$\mathbf{v_y^{body}}$', r'$\mathbf{\tau}$', 
-                r'$\mathbf{x}$', r'$\mathbf{y}$', r'$\mathbf{s}$']
+state_labels = [r'$\mathbf{\delta}$', r'$\mathbf{e_y}$ (m)', r'$\mathbf{e_\Psi}$ (rad)', 
+                r'$\mathbf{v_x^{body}}$ (m/s)', r'$\mathbf{v_y^{body}}$(m/s)', r'$\mathbf{\tau}$', 
+                r'$\mathbf{x}$ (m)', r'$\mathbf{y}$ (m)', r'$\mathbf{s_p}$']
 
 
 # Choose a single color for all trajectories
@@ -90,10 +90,12 @@ for trajectory in list(model_data.values())[:num_trajectories]:
 
 if model_number == "expert":
     ax_large.set_title(f'Expert (Controller Generated)', fontsize=20, fontweight='bold', fontname='sans-serif', pad=20)
+    # ax_large.set_title(f'Expert', fontsize=20, fontweight='bold', fontname='sans-serif', pad=20)
 else:
-    ax_large.set_title(f'Learned Controller from Controller Dataset', fontsize=18, fontweight='bold', fontname='sans-serif', pad=20)
-ax_large.set_xlabel('x', fontsize=14, fontname='sans-serif')
-ax_large.set_ylabel('y', fontsize=14, fontname='sans-serif')
+    # ax_large.set_title(f'Learned Controller from Controller Dataset', fontsize=18, fontweight='bold', fontname='sans-serif', pad=20)
+    ax_large.set_title(f'Model 5', fontsize=18, fontweight='bold', fontname='sans-serif', pad=20)
+ax_large.set_xlabel('x(m)', fontsize=14, fontname='sans-serif')
+ax_large.set_ylabel('y(m)', fontsize=14, fontname='sans-serif')
 ax_large.grid(False)
 
 # Add a label to the plot legend for the runtime trajectories
@@ -109,7 +111,7 @@ for i, ax in enumerate(axes[:6]):
         ax.set_title(f'{state_labels[i]}', fontsize=16, fontweight='bold', fontname='sans-serif', pad=15)
     else:
         ax.set_title(f'{state_labels[i]}', fontsize=16, fontweight='bold', fontname='sans-serif', pad=15)
-    ax.set_xlabel('s (Path Parameter)', fontsize=14, fontname='sans-serif')
+    ax.set_xlabel(r'$s_p$', fontsize=14, fontname='sans-serif')
     # ax.set_ylabel(state_labels[i], fontsize=14, fontname='sans-serif')
     ax.grid(True)
 
@@ -132,4 +134,4 @@ plt.show()
 
 
 # Save the figure
-fig.savefig("figures/pure_pursuit_artificial_states.svg")
+fig.savefig("figures/model42_with_states.svg")

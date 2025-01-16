@@ -15,7 +15,7 @@ def wrap_to_pi(angles):
     return wrapped_angles
 
 # Load expert data
-expert_data = pd.read_feather('Obtained Model Data/pure_pursuit_artificial_df.feather')
+expert_data = pd.read_feather('Obtained Model Data/all_trajectories_filtered.feather')
 expert_data = expert_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 expert_data = expert_data.to_dict()
 
@@ -34,12 +34,12 @@ with open("la_track.yaml", "r") as file:
     track_shape_data = yaml.safe_load(file)
 
 # Define the models, their title mapping, and collision counts
-# models = [37, 38, 39, 41, 42, 44, 45]
-# title_map = {39: 1, 37: 2, 38: 3, 41: 4, 42: 5, 44: 7, 45: 8}
-# collision_counts = {37: 8, 38: 2, 39: 0, 41: 126, 42: 0, 44: 13, 45: 24}
+models = [37, 38, 39, 41, 42, 44, 45]
+title_map = {39: 1, 37: 2, 38: 3, 41: 4, 42: 5, 44: 7, 45: 8}
+collision_counts = {37: 8, 38: 2, 39: 0, 41: 126, 42: 0, 44: 13, 45: 24}
 
-models = [40]
-collision_counts = {40:0}
+# models = [40]
+# collision_counts = {40:0}
 
 # Loop through the models
 for model in models:
@@ -73,8 +73,8 @@ for model in models:
     ax.text(2.5, 2, f'Collisions: {collision_counts[model]}', ha='right', va='top', fontsize=16, color='red', fontweight="bold")
 
     # Add labels, title, and legend
-    ax.set_xlabel("X-coordinate", fontsize=18)
-    ax.set_ylabel("Y-coordinate", fontsize=18)
+    ax.set_xlabel("X-coordinate (m)", fontsize=18)
+    ax.set_ylabel("Y-coordinate (m)", fontsize=18)
     # ax.set_title(f"Model {title_map[model]}", fontsize=20, fontweight="bold")
 
     legend = ax.legend(fontsize=17)

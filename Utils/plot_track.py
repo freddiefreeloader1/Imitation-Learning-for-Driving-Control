@@ -70,8 +70,8 @@ def plot_track(fig, ax, track_data):
     ax.plot(left_track_x, left_track_y, 'b-')
     ax.plot(right_track_x, right_track_y, 'b-')
 
-    ax.set_xlabel('X coordinates')
-    ax.set_ylabel('Y coordinates')
+    ax.set_xlabel('X coordinates (m)')
+    ax.set_ylabel('Y coordinates (m)')
     ax.legend()
     ax.grid(True)
     #ax.set_aspect('equal', adjustable='box')
