@@ -14,7 +14,8 @@ To load the data, you can use the following Python command:
 ```python
 import pandas as pd
 
-data = pd.read_feather('Obtained Model Data/all_trajectories_filtered.feather')  # Choose the appropriate dataset to load ```
+data = pd.read_feather('Obtained Model Data/all_trajectories_filtered.feather')  # Choose the appropriate dataset to load
+```
 
 
 ## Deployment
@@ -25,3 +26,8 @@ Finally, to run the controller node and start controlling the racecar with the t
 
 ```bash
 ros2 run racecar_nn_controller controller_node
+```
+
+## Results from the Work
+[model42.webm](https://github.com/user-attachments/assets/ab6ebf66-2d7d-4e8f-9b16-37f6f99f94d1)
+
