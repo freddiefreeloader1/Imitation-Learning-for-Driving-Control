@@ -33,7 +33,13 @@ ros2 run racecar_nn_controller controller_node
 
 
 
-https://github.com/user-attachments/assets/162eba82-2690-4fc2-8718-a92484bb42a1
+
+
+https://github.com/user-attachments/assets/182338bd-fabd-4f37-a1b5-2e7b36c78306
+
+
+
+https://github.com/user-attachments/assets/18a563a2-11a7-4fc7-a19c-9a671cfb9809
 
 
 
