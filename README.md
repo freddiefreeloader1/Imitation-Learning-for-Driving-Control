@@ -31,3 +31,10 @@ ros2 run racecar_nn_controller controller_node
 ## Results from the Work
 [model42.webm](https://github.com/user-attachments/assets/ab6ebf66-2d7d-4e8f-9b16-37f6f99f94d1)
 
+
+
+https://github.com/user-attachments/assets/162eba82-2690-4fc2-8718-a92484bb42a1
+
+
+
+
