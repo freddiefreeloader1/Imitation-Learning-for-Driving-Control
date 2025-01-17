@@ -7,7 +7,7 @@ We explore various methods to augment the data set and different training strate
 
 ## Datasets
 
-All the expert datasets and model results are available in the folder **"Obtained Model Data"**. The human-generated dataset is stored in the file **"all_trajectories.feather"**, while the controller-generated dataset is in **"pure_pursuit_artificial_df.feather"**. The `.feather` file format is used for efficient data loading.
+All the expert datasets and model results are available in the folder **"Obtained Model Data"**. The human-generated dataset is stored in the file **"all_trajectories.feather", and "all_trajectories_filtered.feather"**, while the controller-generated dataset is in **"pure_pursuit_artificial_df.feather"**. The `.feather` file format is used for efficient data loading.
 
 To load the data, you can use the following Python command:
 
