@@ -6,6 +6,14 @@ from ott.geometry import pointcloud
 from ott.problems.linear import linear_problem
 from ott.solvers.linear import sinkhorn_lr
 
+
+"""
+Script for calculating the optimal transport cost between two discrete distributions. 
+
+To use it just give the paths of the dataframes.
+
+"""
+
 model_data = pd.read_feather('Obtained Model Data/model39_dist_wrapped.feather')
 model_data = model_data.applymap(lambda x: x.tolist() if isinstance(x, np.ndarray) else x)
 model_data = model_data.to_dict()

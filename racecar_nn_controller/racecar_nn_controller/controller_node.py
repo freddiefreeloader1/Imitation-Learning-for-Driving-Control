@@ -23,6 +23,8 @@ import json
 import time
 import pandas as pd
 
+
+# define the NN architecture
 class SimpleNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, input_weights=[1.0, 1.0, 1.0, 1.0, 1.0]):
         super(SimpleNet, self).__init__()
@@ -51,15 +53,18 @@ class RacecarNNController(Node):
     def __init__(self):
         super().__init__('racecar_nn_controller')
 
-
+        # frequency of adding noise to states in runtime
         self.declare_parameter('noise_frequency', 1) 
         self.noise_frequency = self.get_parameter('noise_frequency').value
 
+
+        # sim or real? 
         self.declare_parameter('mode', "sim") 
         self.mode = self.get_parameter('mode').value
 
         self.message_counter = 0
 
+        # open the track
         track_path = "/home/la-user/ros2_ws/src/racecar_nn_controller/racecar_nn_controller/la_track.yaml"
         with open(track_path, "r") as file:
             self.track_shape_data = yaml.safe_load(file)
@@ -67,6 +72,8 @@ class RacecarNNController(Node):
         self.track_shape_data['track']['xCoords'] = np.array(self.track_shape_data['track']['xCoords']) - self.track_shape_data['track']['x_init']
         self.track_shape_data['track']['yCoords'] = np.array(self.track_shape_data['track']['yCoords']) - self.track_shape_data['track']['y_init']
 
+        
+        # extract the mean trajectory
         self.mean_traj = pd.read_feather('/home/la-user/ros2_ws/src/racecar_nn_controller/racecar_nn_controller/mean_trajectory.feather')
 
         # Convert the DataFrame to a dictionary
@@ -81,7 +88,7 @@ class RacecarNNController(Node):
         self.mean_traj = mean_traj_dict
 
 
-
+        # for keeping track of lap numbers and durations 
         self.last_s = None
         self.lap_start_time = None
         self.lap_time = None
@@ -89,7 +96,7 @@ class RacecarNNController(Node):
 
         self.track_data = []
 
-
+        # subscription to the joy node
         self.subscription_joy = self.create_subscription(
             Joy,
             '/joy',
@@ -99,7 +106,9 @@ class RacecarNNController(Node):
         self.joy_command = 0
 
         print("The mode is: ", self.mode)
-        
+
+
+        # create subscriptions
         if self.mode == "sim":
             self.subscription_track = self.create_subscription(
             Pose2D,
@@ -130,16 +139,23 @@ class RacecarNNController(Node):
 
         # Load the trained model
         package_share_directory = get_package_share_directory('racecar_nn_controller')
-        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_40_64.pth')
-        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_40.json')
+        model_path = os.path.join(package_share_directory, 'models', 'model_noisy_45_64.pth')
+        scaler_params_path = os.path.join(package_share_directory, 'models', 'scaling_params_noisy_45.json')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
 
-        self.include_omega = False
-        self.include_prev_action = False
-        self.wrap_omega = False
-        self.add_noise = False
+        # select which ones are included in the trained model
+        self.include_omega = True
+        self.include_prev_action = True
 
+        # this should always stay false
+        self.wrap_omega = False
+
+        # whether to add noise or not in runtime
+        self.add_noise = True
+
+
+        # init the model
         if self.include_omega and self.include_prev_action:
             self.model = SimpleNet(input_size=8, hidden_size=64, output_size=2, input_weights=[5.0, 5.0, 5.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         elif not self.include_omega and self.include_prev_action:
@@ -155,6 +171,8 @@ class RacecarNNController(Node):
         
         with open(scaler_params_path, 'r') as f:
             scaling_params = json.load(f)
+
+        # for normalization of states and actions 
 
         mean_state = scaling_params['mean'][0]
         scale_state = scaling_params['std'][0]
@@ -224,6 +242,9 @@ class RacecarNNController(Node):
         # Set a shutdown flag
         self.shutdown_flag = False
 
+
+
+        # pure pursuit lookahead parameter
         self.Kdd = 0.30
 
     
@@ -240,27 +261,31 @@ class RacecarNNController(Node):
         if self.track_flag:
 
             self.message_counter += 1
-            
+
+
+            # get raw state
             state_values = np.array([msg.pos_x, msg.pos_y, msg.vel_x, msg.vel_y, wrap_to_pi(msg.turn_angle),  msg.turn_rate], dtype = np.float32)
 
+            # transform to track frame
             local_state = transform_to_track(state_values, self.track_data)
 
             noise_weight_coeff = 0.01
 
             noised_local_state = local_state.copy()
 
+            # apply noise to the local states
             if self.message_counter % self.noise_frequency == 0 and self.add_noise:
                 noised_local_state[0] = noised_local_state[0] + np.random.normal(0, 0.5) * noise_weight_coeff
                 noised_local_state[1] = noised_local_state[1] + np.random.normal(0, 0.5) * noise_weight_coeff
                 noised_local_state[2] = noised_local_state[2] + np.random.normal(0, 2) * noise_weight_coeff
                 noised_local_state[-1] = noised_local_state[-1] + np.random.normal(0, 1.5) * noise_weight_coeff
 
+            
+            # transform to curvilinear frame
             curvilinear_pose_noised = pose_to_curvi(self.track_shape_data, noised_local_state, bring_to_origin=False)
             curvilinear_pose_real = pose_to_curvi(self.track_shape_data, local_state, bring_to_origin=False)
 
-            #################################### WHY DOES WRAPPING IT MAKE IT SMOOTHER?
-            # High turn rates triggers high steering angles to compensate in the expert data
-            # By wrapping it we are never getting high turn rates
+            # wrap omega should be false, it is from one of the previous experiments
             if self.include_omega:
                 if self.wrap_omega:
                     state = np.concatenate([curvilinear_pose_noised, [local_state[3], local_state[4]], wrap_to_pi(local_state[-1])], axis=None)
@@ -269,15 +294,16 @@ class RacecarNNController(Node):
                     state = np.concatenate([curvilinear_pose_noised, [local_state[3], local_state[4]],local_state[-1]], axis=None)
                     state[0] = curvilinear_pose_real[0]
 
+                # noise coeffs for different variables
                 if self.include_prev_action:
                     noise_coeff = [0.5, 0.7, 0.5, 0.2, 0.1, 0.1, 0.005, 0.04]
                 else:
-                    noise_coeff = [1, 0.7, 0.5, 0.2, 0.1, 0.1]
+                    noise_coeff = [0.5, 0.7, 0.1, 0.2, 0.1, 0.1]
             else:
                 state = np.concatenate([curvilinear_pose_noised, [local_state[3], local_state[4]]], axis=None)
                 state[0] = curvilinear_pose_real[0]
                 if self.include_prev_action:
-                    noise_coeff = [1, 0.7, 0.5, 0.2, 0.1, 0.005, 0.04]
+                    noise_coeff = [0.5, 0.7, 0.1, 0.2, 0.1, 0.005, 0.04]
                 else:
                     noise_coeff = [1, 0.7, 0.5, 0.2, 0.1]
 
@@ -306,12 +332,13 @@ class RacecarNNController(Node):
             
             steering_pure_pursuit = np.clip(steering_pure_pursuit / np.deg2rad(17), -1, 1)
 
-            ######################################################################
+            ###################################################################### transform the state to normalize it
 
             state_transformed = self.scaler.transform([state])
 
             state_transformed = torch.Tensor(state_transformed).to(self.device)
 
+            # calculate the actions 
             with torch.no_grad():
                 action = self.model(state_transformed.unsqueeze(0)).cpu().numpy().flatten()
                 action = action * self.scale_action + self.mean_action
@@ -421,8 +448,8 @@ class RacecarNNController(Node):
             if self.log_data:
                 df = pd.DataFrame.from_dict(self.log_data)
                 df_pp = pd.DataFrame.from_dict(self.pure_pursuit_log_data)
-                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model37_dist_wrapped.feather'
-                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model37_dist_pure_pursuit_wrapped.feather'
+                log_path = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model45_dist_wrapped.feather'
+                log_path_pp = f'/home/la-user/Imititation-Learning-for-Driving-Control/Obtained Model Data/model45_dist_pure_pursuit_wrapped.feather'
 
                 df.to_feather(log_path)
                 df_pp.to_feather(log_path_pp)
