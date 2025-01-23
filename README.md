@@ -9,10 +9,10 @@ We explore various methods to augment the data set and different training strate
 
 1. Convert .mcap files to csv files with ```1_mcap_to_csv_for_all.py```.
 2. Clean up the .csv files and save as "Cleaned_()" (convert timestamp and extract data, by dismissing message information) with ```2_cleanup_csv.py```.
-3. Preprocess the data with ```3_preprocess_data.py```.
+3. Preprocess the data with ```3_preprocess_data.py```. It uses ```src/utils/cartesian_to_curvilinear.py``` and 
+```src/utils/transform_to_track_frame.py```.
 
-It generates the datasets to be used in training using the raw data coming from the mocaps. The raw data and the cleaned data can be found in ```data_la_human_expert/```.
-
+It generates the datasets to be used in training using the raw data coming from the mocaps. The raw data and the cleaned data can be found in ```data_la_human_expert/```. 
 
 
 ## Project Datasets Directly Recorded in ".feather":
@@ -27,7 +27,7 @@ These include all the recorded datasets from experiments, the original datasets,
 - ```expert_augmented/```: contains original dataset + added datapoints
 - ```expert_bucket_data/```: contains the mean and std data for each individual bucket in original trajectories, and the mean trajectory of human dataset
 
-The human-generated dataset is stored in the file **"all_trajectories.feather", and "all_trajectories_filtered.feather"**, while the controller-generated dataset is in **"pure_pursuit_artificial_df.feather"**. The `.feather` file format is used for efficient data loading.
+The human-generated dataset is stored in the file ```all_trajectories.feather```, and ```all_trajectories_filtered.feather```, while the controller-generated dataset is in ```pure_pursuit_artificial_df.feather```. The `.feather` file format is used for efficient data loading.
 
 To load the data, you can use the following Python command:
 
@@ -99,9 +99,6 @@ ros2 run racecar_nn_controller controller_node
 All figures can be found in ```figures/```.
 
 [model42.webm](https://github.com/user-attachments/assets/ab6ebf66-2d7d-4e8f-9b16-37f6f99f94d1)
-
-
-
 
 
 https://github.com/user-attachments/assets/182338bd-fabd-4f37-a1b5-2e7b36c78306
