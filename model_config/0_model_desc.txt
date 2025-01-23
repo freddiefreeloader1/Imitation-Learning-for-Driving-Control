@@ -1,0 +1,459 @@
+model 3:
+ - without the data augmentation
+
+model 12:
+
+- without ellipsoids
+- towards central line
+- for every 5 point
+- noise : pos 0.5, angle 0.5
+- wrap to pi error
+
+model 13:
+
+- w ellipsoids
+- towards mean traj
+- for every 5 point
+- noise : pos 0.5, angle 0.5
+- wrap to pi error
+
+model 14:
+
+- w ellipsoids
+- towards outer traj
+- for every 1 point
+- noise : pos 1, angle 1
+- wrap to pi error
+
+model 15:
+
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.8, angle 2
+- wrap to pi error
+
+model 16:
+
+- w ellipsoids
+- towards mean traj
+- for every 5 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+model 17:
+
+- w/o ellipsoids
+- towards mean traj
+- for every 5 point
+- noise : pos 0.7, angle 2
+
+
+model 18:
+
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+model 19:
+
+- trained with pure pursuit data
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+model 20:
+
+- trained with the wrapped dtheta values for the pure pursuit data
+- trained with pure pursuit data
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+model 21:
+
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+model 22:
+
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+model 23:
+
+- with adding noise to omega
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+model 24:
+
+- with clipping the omega values to -4 and 4 on all trajectories filtered
+- with adding noise to omega
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+model 25:
+
+- omega weight on the model decreased to 0.1
+- with adding noise to omega
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+model 26:
+
+- weight decay parameter increased to 1e-3 from 1e-6
+- with adding noise to omega
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+
+
+model 27:
+
+- added regularization to steering with weight 1.0
+- weight decay parameter increased to 1e-3 from 1e-6
+- with adding noise to omega
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+
+
+model 28:
+
+- with omega
+- added regularization to steering with weight 1.0
+- weight decay parameter increased to 1e-3 from 1e-6
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+
+
+model 29:
+
+- added l1 regularization with weight 1e-6
+- with omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+
+
+
+model 30:
+
+- with Kdd 0.3
+- without prev action
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-6
+- with omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 4
+- PERCENTAGE: 2.43
+- OTT: 29.78
+
+
+
+
+model 31:
+
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-6
+- with omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+
+model 32:
+
+- with previous actions (no penalty)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-6
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+
+model 33:
+
+- with previous actions (no penalty)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+
+model 34:
+
+- with previous actions (with penalty weight 1)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+
+
+model 35:
+
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+
+
+model 36:
+
+- with Kdd = 0.6 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+
+model 37: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- without omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 8
+- PERCENTAGE: 0.0
+- OTT: 27.73
+
+model 38: USED
+
+- with Kdd = 0.6 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- added regularization to steering with weight 1.0
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 2
+- PERCENTAGE: 0.0
+- OTT: 33.75
+
+
+model 39: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 0
+- PERCENTAGE: 0.16
+- OTT: 31.10
+
+
+model 40:
+
+- trained with pure pursuit real data
+- w ellipsoids
+- towards mean traj
+- for every 1 point
+- noise : pos 0.7, angle 2
+- wrap to pi error fixed
+- no vel augmentation
+
+
+model 41: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- without previous actions
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION:126
+- PERCENTAGE:7.47
+- OTT:27.61
+
+
+model 42: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- without ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 0
+- PERCENTAGE: 0.0
+- OTT: 25.79
+
+
+model 43: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards mean trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: -
+- PERCENTAGE: -
+- OTT: -
+- NOT STABLE
+
+
+model 44: USED
+
+- with Kdd = 0.5 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-8
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 13
+- PERCENTAGE: 4.30
+- OTT: 29.03
+
+
+model 45: USED
+
+- with Kdd = 0.3 (changed from 0.3)
+- with previous actions (with penalty weight 3)
+- with noise values 0.25 pos, 1 heading angle, 0.75 omega
+- added l1 regularization with weight 1e-4
+- with omega
+- with filtered trajectories
+- w ellipsoids
+- towards each trajectory
+- for every 1 point
+- wrap to pi error fixed
+
+- COLLISION: 24
+- PERCENTAGE: 5.90
+- OTT: 30.66

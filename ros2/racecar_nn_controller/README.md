@@ -1,0 +1,1 @@
+This package is intended for use in the LA_racing mini-racecar project at the Automatic Laboratory, EPFL. To use it, you must provide the model.pth and scaling_param.json files in the /racecar_nn_controller/models directory. Additionally, the structure of the corresponding model should be defined within the controller_node.py file as a class.
