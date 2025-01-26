@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+authors:
+  - family-names: "Gürsoy"
+    given-names: "Mustafa Emre"
+  - family-names: "Waibel"
+    given-names: "Johannes"
+  - family-names: "Schlaginhaufen"
+    given-names: "Andreas"
+title: "Imitation Learning for Driving Control with Data Augmentation"
+version: "1.0"
+keywords:
+  - "imitation learning"
+  - "data augmentation"
+date-released: 2025-01-26
+repository-code: "https://github.com/freddiefreeloader1/Imitation-Learning-for-Driving-Control"
